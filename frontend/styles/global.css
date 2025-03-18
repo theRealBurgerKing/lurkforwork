@@ -5,3 +5,8 @@ html, body {
     height: 100%;
     font-family: Arial;
 }
+
+
+.hide{
+    display: none;
+}
