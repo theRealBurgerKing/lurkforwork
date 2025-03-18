@@ -11,6 +11,23 @@
 </head>
 <body>
   <main role="main">
+    <div id = "page-login" class = "page hide">
+      <h1>Login</h1>
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="email">Email</span>
+        <input type="text" class="form-control" id = "login-email" placeholder="hayden@gmail.com" aria-label="email" aria-describedby="basic-addon1">
+      </div>
+
+      <div class="input-group mb-3">
+        <span class="input-group-text" id="password1">Password</span>
+        <input type="password" class="form-control" id = "login-password1" aria-label="Password" aria-describedby="basic-addon1">
+      </div>
+
+      <button type="button" id = "btn-login" class = "btn btn-primary">Submit</button>
+      <a internal-link = "register" href = "#">Login instead</a>
+    </div>
+
+
     <div id = "page-register" class = "page hide">
       <h1>Register</h1>
 
@@ -34,7 +51,7 @@
         <input type="password" class="form-control" id = "register-password2" aria-label="Confirm Password" aria-describedby="basic-addon1">
       </div>
       <button type="button" id = "btn-register" class = "btn btn-primary">Submit</button>
-      <a href = "#">Login instead</a>
+      <a internal-link = "login" href = "#">Login instead</a>
     </div>
 
     <div id = "page-feed" class = "page hide">
