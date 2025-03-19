@@ -3,6 +3,24 @@ import { BACKEND_PORT } from './config.js';
 import { fileToDataUrl } from './helpers.js';
 
 
+function apiCall(path, data) {
+    fetch(`http://localhost:${BACKEND_PORT}/${path}`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+        'Content-type': 'application/json',
+        }
+    }).then((response) => {
+        response.json().then((data) => {
+        if (response.status === 200) {
+            localStorage.setItem('lurkforwork_token', data.token);
+            showPage('feed');
+        } else {
+        alert(data.error);
+        }
+    });
+    });
+}
 //register
 document.getElementById('btn-register').addEventListener('click', () => {
     const email = document.getElementById('register-email').value;
@@ -12,60 +30,21 @@ document.getElementById('btn-register').addEventListener('click', () => {
     if (password !== passwordConfirm) {
         alert('Passwords don\'t match');
     }
-    const fetchResult = fetch(`http://localhost:${BACKEND_PORT}/auth/register`, {
-        method: 'POST',
-        body: JSON.stringify({
-            "email": email,
-            "password": password,
-            "name": name
-        }),
-        headers: {
-            'Content-type': 'application/json',
-        }
-    });
-    fetchResult.then((result)=>{
-        const jsonPromise = result.json();
-        jsonPromise.then((data)=>{
-            if(result.status === 200){
-                localStorage.setItem('lurkforwork_token',data.token);
-            showPage('feed');
-            }
-            else{
-                alert(data.error);
-            }
-            
-        })
-    });
-    console.log(fetchResult);
+    apiCall('auth/register',{
+        "email": email,
+        "password": password,
+        "name": name,
+    })
 });
 
 //login
 document.getElementById('btn-login').addEventListener('click', () => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password1').value;
-    
-    const fetchResult = fetch(`http://localhost:${BACKEND_PORT}/auth/login`, {
-        method: 'POST',
-        body: JSON.stringify({
-            "email": email,
-            "password": password,
-        }),
-        headers: {
-            'Content-type': 'application/json',
-        }
-    });
-    fetchResult.then((result)=>{
-        const jsonPromise = result.json();
-        jsonPromise.then((data)=>{
-            if(result.status === 200){
-                localStorage.setItem('lurkforwork_token',data.token);
-            showPage('feed');
-            }
-            else{
-                alert(data.error);
-            }
-        })
-    });
+    apiCall('auth/login',{
+        "email": email,
+        "password": password,
+    })
 });
 
 
