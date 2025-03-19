@@ -5,23 +5,26 @@ import { fileToDataUrl } from './helpers.js';
 let token = localStorage.getItem('lurkforwork_token');
 
 //send POST request to backend
-function apiCall(path, method, data,successCallback) {
-    fetch(`http://localhost:${BACKEND_PORT}/${path}`, {
-        method: method,
-        body: method ==='GET'? undefined:JSON.stringify(data),
-        headers: {
-        'Content-type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : undefined,
-        }
-    }).then((response) => {
-        response.json().then((data) => {
-        if (response.status === 200) {
-            successCallback(data);
-        } else {
-        alert(data.error);
-        }
-    });
-    });
+function apiCall(path, method, data) {
+    return new Promise((resolve,reject)=>{
+        fetch(`http://localhost:${BACKEND_PORT}/${path}`, {
+            method: method,
+            body: method ==='GET' ? undefined : JSON.stringify(data),
+            headers: {
+                'Content-type': 'application/json',
+                'Authorization': token ? `Bearer ${token}` : undefined,
+            }
+        }).then((response) => {
+            response.json().then((data) => {
+                if (response.status === 200) {
+                    resolve(data);
+                } else {
+                    reject(data.error);
+                }
+            });
+        });  
+    })
+    
 }
 //register
 document.getElementById('btn-register').addEventListener('click', () => {
@@ -40,10 +43,10 @@ document.getElementById('btn-register').addEventListener('click', () => {
             password: password,
             name: name,
         },
-        function(data){
+    ).then((data)=>{
             localStorage.setItem('lurkforwork_token', data.token);
             showPage('feed');
-        })
+        });
 });
 
 //login
@@ -56,11 +59,12 @@ document.getElementById('btn-login').addEventListener('click', () => {
         {
             email: email,
             password: password,
-        },
-        function(data){
+        }
+    ).then((data)=>{
             localStorage.setItem('lurkforwork_token', data.token);
             showPage('feed');
-        })
+        }
+    );
 });
 
 
@@ -82,7 +86,7 @@ const showPage = (pageName)=>{
 };
 
 const loadFeed = () => {
-    apiCall('job/feed?start=0', 'GET', {}, function (data) {
+    apiCall('job/feed?start=0', 'GET', {}).then((data)=>{
       let string = '';
       for (const job of data) {
         string += job.description;
