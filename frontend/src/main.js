@@ -184,7 +184,36 @@ const loadFeed = () => {
             descriptionP.textContent = job.description;
             jobPost.appendChild(descriptionP);
 
+            // Comments count
+            const commentsCountP = document.createElement('p');
+            const commentsCountStrong = document.createElement('strong');
+            commentsCountStrong.textContent = 'Comments: ';
+            commentsCountP.appendChild(commentsCountStrong);
+            commentsCountP.appendChild(document.createTextNode(commentsCount));
+            jobPost.appendChild(commentsCountP);
+
+            // Comments
+            const commentsDiv = document.createElement('div');
+            commentsDiv.className = 'comments';
             
+            if (job.comments && job.comments.length > 0) {
+                const commentsList = document.createElement('ul');
+                for (const comment of job.comments) {
+                    const commentItem = document.createElement('li');
+                    const commentStrong = document.createElement('strong');
+                    commentStrong.textContent = `${comment.userName}: `;
+                    commentItem.appendChild(commentStrong);
+                    commentItem.appendChild(document.createTextNode(comment.comment));
+                    commentsList.appendChild(commentItem);
+                }
+                commentsDiv.appendChild(commentsList);
+            } else {
+                const noCommentsP = document.createElement('p');
+                noCommentsP.textContent = 'No comments yet.';
+                commentsDiv.appendChild(noCommentsP);
+            }
+            jobPost.appendChild(commentsDiv);
+            feedContent.appendChild(jobPost);
         }
     }).catch((error) => {
         showErrorModal(error);
