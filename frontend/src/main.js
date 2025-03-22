@@ -2,7 +2,7 @@ import { BACKEND_PORT } from './config.js';
 // A helper you may want to use when uploading new images to the server.
 import { fileToDataUrl } from './helpers.js';
 
-
+let jobIds = [];
 //Error popup
 const showErrorModal = (message) => {
     const modal = new bootstrap.Modal(document.getElementById('error-modal'));
@@ -120,8 +120,10 @@ const loadFeed = () => {
     apiCall('job/feed?start=0', 'GET', {}).then((data) => {
         const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const feedContent = document.getElementById('feed-content');
+        jobIds = [];
         feedContent.innerHTML = '';
-        for (const job of sortedJobs) {
+        sortedJobs.forEach((job, index) => {
+            jobIds.push(job.id);
             const postedBy = job.creatorId || 'Unknown User';
             const postedTime = formatTimeAgo(job.createdAt);
             const likesCount = job.likes ? job.likes.length : 0;
@@ -174,6 +176,7 @@ const loadFeed = () => {
             const likeButton = document.createElement('button');
             likeButton.className = 'like-job';
             likeButton.textContent = 'Like';
+            likeButton.dataset.index = index;
             likesP.appendChild(likesStrong);
             likesP.appendChild(likeButton);
             likesP.appendChild(document.createTextNode(` ${likesCount}`));
@@ -214,7 +217,25 @@ const loadFeed = () => {
             }
             jobPost.appendChild(commentsDiv);
             feedContent.appendChild(jobPost);
-        }
+        });
+
+        document.querySelectorAll('.like-job').forEach((button) => {
+            const index = parseInt(button.dataset.index, 10);
+            const jobId = jobIds[index];
+            const job = sortedJobs[index];
+            let ifliked = job.likes && job.likes.some(like => like.userId === localStorage.getItem('userId')); // 假设 userId 存储在 localStorage
+            button.textContent = ifliked ? 'Unlike' : 'Like';
+        
+            button.addEventListener('click', () => {
+                ifliked = !ifliked;
+                apiCall('job/like', 'PUT', { id: jobId, turnon: ifliked })
+                    .then(() => {
+                        button.textContent = ifliked ? 'Unlike' : 'Like';
+                        showErrorModal(`${ifliked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
+                    })
+                    .catch((error) => showErrorModal('Error: ' + error));
+            });
+        });
     }).catch((error) => {
         showErrorModal(error);
     });
@@ -230,19 +251,7 @@ for (const atag of document.querySelectorAll('a')) {
         });
     }
 }
-// Likes
 
-// document.querySelectorAll('.like-job').forEach((button) => {
-//     button.addEventListener('click', () => {
-//         // const jobId = button.closest('.job-post').dataset.jobId;
-//         // apiCall(`job/like`, 'PUT', { id: jobId , "turnon":true})
-//         //     .then(() => {
-//         //         showErrorModal('Liked successfully! Refresh to see updates.');
-//         //     })
-//         //     .catch((error) => showErrorModal(error));
-//         console.log("111");
-//     });
-// });
 
 //When Page load
 if(localStorage.getItem('lurkforwork_token')){
