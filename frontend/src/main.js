@@ -2,11 +2,19 @@ import { BACKEND_PORT } from './config.js';
 // A helper you may want to use when uploading new images to the server.
 import { fileToDataUrl } from './helpers.js';
 
-let token = localStorage.getItem('lurkforwork_token');
+//let token = localStorage.getItem('lurkforwork_token');
 
-//send POST request to backend
+//Error popup
+const showErrorModal = (message) => {
+    const modal = new bootstrap.Modal(document.getElementById('error-modal'));
+    document.getElementById('error-message').textContent = message;
+    modal.show();
+};
+
+//send request to backend
 function apiCall(path, method, data) {
     return new Promise((resolve,reject)=>{
+        const token = localStorage.getItem('lurkforwork_token');
         fetch(`http://localhost:${BACKEND_PORT}/${path}`, {
             method: method,
             body: method ==='GET' ? undefined : JSON.stringify(data),
@@ -33,7 +41,8 @@ document.getElementById('btn-register').addEventListener('click', () => {
     const password = document.getElementById('register-password1').value;
     const passwordConfirm = document.getElementById('register-password2').value;
     if (password !== passwordConfirm) {
-        alert('Passwords don\'t match');
+        showErrorModal("Passwords don't match");
+        return;
     }
     apiCall(
         'auth/register',
@@ -46,7 +55,10 @@ document.getElementById('btn-register').addEventListener('click', () => {
     ).then((data)=>{
             localStorage.setItem('lurkforwork_token', data.token);
             showPage('feed');
-        });
+        })
+    .catch((error) => {
+        showErrorModal(error);
+    });
 });
 
 //login
@@ -61,10 +73,12 @@ document.getElementById('btn-login').addEventListener('click', () => {
             password: password,
         }
     ).then((data)=>{
-            localStorage.setItem('lurkforwork_token', data.token);
-            showPage('feed');
-        }
-    );
+        localStorage.setItem('lurkforwork_token', data.token);
+        showPage('feed');
+    })
+    .catch((error) => {
+        showErrorModal(error);
+    });
 });
 
 
@@ -85,17 +99,46 @@ const showPage = (pageName)=>{
     }
 };
 
+
 const loadFeed = () => {
-    apiCall('job/feed?start=0', 'GET', {}).then((data)=>{
-      let string = '';
-      for (const job of data) {
-        string += job.description;
-        string += ' || ';
-      }
-      document.getElementById('feed-content').innerText = string;
-    console.log(data);
+    apiCall('job/feed?start=0', 'GET', {}).then((data) => {
+        const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        let feedHtml = '';
+        for (const job of sortedJobs) {
+            const postedBy = job.creatorId || 'Unknown User'; // Assuming userName is available; adjust if needed
+            const postedTime = formatTimeAgo(job.createdAt);
+            const likesCount = job.likes ? job.likes.length : 0;
+            const commentsCount = job.comments ? job.comments.length : 0;
+            let commentsHtml = '';
+            if (job.comments && job.comments.length > 0) {
+                commentsHtml = '<div class="comments"><h4>Comments:</h4><ul>';
+                for (const comment of job.comments) {
+                    commentsHtml += `<li><strong>${comment.userName}:</strong> ${comment.comment}</li>`;
+                }
+                commentsHtml += '</ul></div>';
+            } else {
+                commentsHtml = '<p>No comments yet.</p>';
+            }
+            feedHtml += `
+                <div class="job-post">
+                    <img src="${job.image}" alt="${job.title}" style="max-width: 100%;">
+                    <h3>${job.title}</h3>
+                    <p><strong>Posted by:</strong> ${postedBy}</p>
+                    <p><strong>Posted:</strong> ${postedTime}</p>
+                    <p><strong>Start Date:</strong> ${job.start.split('T')[0].split('-').reverse().join('/')}</p>
+                    <p><strong>Likes:</strong> ${likesCount}</p>
+                    <p>${job.description}</p>
+                    <p><strong>Comments:</strong> ${commentsCount}</p>
+                    ${commentsHtml}
+                    <hr>
+                </div>
+            `;
+        }
+        document.getElementById('feed-content').innerHTML = feedHtml;
+    }).catch((error) => {
+        showErrorModal(error);
     });
-  };
+};
 for (const atag of document.querySelectorAll('a')) {
     if (atag.hasAttribute('internal-link')) {
         atag.addEventListener('click', () => {
@@ -108,7 +151,7 @@ for (const atag of document.querySelectorAll('a')) {
 
 //When Page load
 
-if(token){
+if(localStorage.getItem('lurkforwork_token')){
     showPage('feed');
 }
 else{
