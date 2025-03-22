@@ -79,6 +79,16 @@ document.getElementById('btn-login').addEventListener('click', () => {
     });
 });
 
+//profile
+document.getElementById('btn-profile').addEventListener('click', () => {
+    showPage('profile');
+});
+
+//back to feed
+document.getElementById('btn-profileback').addEventListener('click', () => {
+    showPage('feed');
+});
+
 //btn-logout
 document.getElementById('btn-logout').addEventListener('click',()=>{
     localStorage.removeItem('lurkforwork_token');
@@ -117,6 +127,7 @@ const formatTimeAgo = (createdAt) => {
 
 //feed page
 const loadFeed = () => {
+    document.getElementById("btn-profile").style.display = "block";
     apiCall('job/feed?start=0', 'GET', {}).then((data) => {
         const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const feedContent = document.getElementById('feed-content');

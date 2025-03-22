@@ -11,6 +11,7 @@
 </head>
 <body>
   
+<!-- message box -->
 <div id="error-modal" class="modal fade" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -30,41 +31,37 @@
 
 
   <main role="main">
+    <button id="btn-profile">Profile</button>
+    <!-- page-login -->
     <div id = "page-login" class = "page hide">
       <h1>Login</h1>
       <div class="input-group mb-3">
         <span class="input-group-text" id="email">Email</span>
         <input type="text" class="form-control" id = "login-email" placeholder="hayden@gmail.com" aria-label="email" aria-describedby="basic-addon1">
       </div>
-
       <div class="input-group mb-3">
         <span class="input-group-text" id="password1">Password</span>
         <input type="password" class="form-control" id = "login-password1" aria-label="Password" aria-describedby="basic-addon1">
       </div>
-
       <button type="button" id = "btn-login" class = "btn btn-primary">Submit</button>
       <a internal-link = "register" href = "#">Register instead</a>
     </div>
 
-
+    <!-- page-register -->
     <div id = "page-register" class = "page hide">
       <h1>Register</h1>
-
       <div class="input-group mb-3">
         <span class="input-group-text" id="email">Email</span>
         <input type="text" class="form-control" id = "register-email" placeholder="hayden@gmail.com" aria-label="email" aria-describedby="basic-addon1">
       </div>
-
       <div class="input-group mb-3">
         <span class="input-group-text" id="name">Name</span>
         <input type="text" class="form-control" id = "register-name" placeholder="Hayden" aria-label="Name" aria-describedby="basic-addon1">
       </div>
-
       <div class="input-group mb-3">
         <span class="input-group-text" id="password1">Password</span>
         <input type="password" class="form-control" id = "register-password1" aria-label="Password" aria-describedby="basic-addon1">
       </div>
-
       <div class="input-group mb-3">
         <span class="input-group-text" id="password2">Confirm Password</span>
         <input type="password" class="form-control" id = "register-password2" aria-label="Confirm Password" aria-describedby="basic-addon1">
@@ -72,13 +69,23 @@
       <button type="button" id = "btn-register" class = "btn btn-primary">Submit</button>
       <a internal-link = "login" href = "#">Login instead</a>
     </div>
-
+    <!-- page-feed -->
     <div id = "page-feed" class = "page hide">
       <h1>Feed</h1>
       <button class = "btn btn-primary" id = "btn-logout">
         Logout
       </button>
       <div id = "feed-content"></div>
+    </div>
+
+    <!-- Profile 页面容器 -->
+    <div id="page-profile" class="page hide">
+      <h2 id="profile-name">111</h2>
+      <!-- <p id="profile-email"></p>
+      <img id="profile-image" alt="Profile picture" style="max-width: 200px; display: none;">
+      <h3>Created Jobs:</h3>
+      <ul id="profile-jobs"></ul> -->
+      <button class = "btn btn-primary" id="btn-profileback">Back to Feed</button>
     </div>
   </main>
   <script type="module" src="src/main.js"></script>
