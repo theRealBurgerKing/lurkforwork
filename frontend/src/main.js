@@ -3,6 +3,7 @@ import { BACKEND_PORT } from './config.js';
 import { fileToDataUrl } from './helpers.js';
 
 let jobIds = [];
+let myId = null;
 //Error popup
 const showErrorModal = (message) => {
     const modal = new bootstrap.Modal(document.getElementById('error-modal'));
@@ -52,6 +53,7 @@ document.getElementById('btn-register').addEventListener('click', () => {
         },
     ).then((data)=>{
             localStorage.setItem('lurkforwork_token', data.token);
+            myId=data.userId;
             showPage('feed');
         })
     .catch((error) => {
@@ -72,6 +74,7 @@ document.getElementById('btn-login').addEventListener('click', () => {
         }
     ).then((data)=>{
         localStorage.setItem('lurkforwork_token', data.token);
+        myId=data.userId;
         showPage('feed');
     })
     .catch((error) => {
@@ -92,6 +95,7 @@ document.getElementById('btn-profileback').addEventListener('click', () => {
 //btn-logout
 document.getElementById('btn-logout').addEventListener('click',()=>{
     localStorage.removeItem('lurkforwork_token');
+    document.getElementById("btn-profile").style.display = "none";
     showPage('register');
 });
 
@@ -104,6 +108,9 @@ const showPage = (pageName)=>{
     document.getElementById(`page-${pageName}`).classList.remove('hide');
     if(pageName==='feed'){
         loadFeed();
+    }
+    if(pageName==='profile'){
+        loadProfile();
     }
 };
 
@@ -124,7 +131,58 @@ const formatTimeAgo = (createdAt) => {
         return `${day}/${month}/${year}`;
     }
 };
+//profile page
+const loadProfile = ()=>{
+    document.getElementById("btn-profile").style.display = "none";
+    console.log(myId);
+    if (!myId) {
+        showErrorModal('User ID not found. Please log in again.');
+        return;
+    }
+    let profileContent = document.getElementById('profile-content');
+    apiCall(`user?userId=${myId}`,'GET',{}).then((data)=>{
+        console.log(data);
+        profileContent.innerHTML = '';
+        //name
+        const nameHeader = document.createElement('h2');
+        nameHeader.textContent = data.name;
+        profileContent.appendChild(nameHeader);
 
+        //email
+        const emailP = document.createElement('p');
+        emailP.textContent = `Email: ${data.email}`;
+        profileContent.appendChild(emailP);
+
+        //profile pic
+        if (data.image) {
+            const img = document.createElement('img');
+            img.src = data.image;
+            img.alt = `${data.name}'s profile picture`;
+            img.style.maxWidth = '200px';
+            profileContent.appendChild(img);
+        }
+        // user who watch me
+        const watchersHeader = document.createElement('h3');
+        watchersHeader.textContent = 'Users who watch me:';
+        profileContent.appendChild(watchersHeader);
+
+        const watchersList = document.createElement('ul');
+        if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
+            data.usersWhoWatchMeUserIds.forEach((userId) => {
+                const watcherItem = document.createElement('li');
+                watcherItem.textContent = `User ID: ${userId}`;
+                watchersList.appendChild(watcherItem);
+            });
+        } else {
+            const noWatchers = document.createElement('li');
+            noWatchers.textContent = 'No users are watching you.';
+            watchersList.appendChild(noWatchers);
+        }
+        profileContent.appendChild(watchersList);
+    }).catch((error) => {
+        showErrorModal(error);
+    });
+}
 //feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
