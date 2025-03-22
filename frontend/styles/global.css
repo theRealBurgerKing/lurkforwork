@@ -10,3 +10,13 @@ html, body {
 .hide{
     display: none;
 }
+
+.job-post {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
+.job-post img {
+    max-width: 100%;
+    height: auto;
+}

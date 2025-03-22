@@ -99,7 +99,22 @@ const showPage = (pageName)=>{
     }
 };
 
+const formatTimeAgo = (createdAt) => {
+    const now = new Date();
+    const postDate = new Date(createdAt);
+    const diffMs = now - postDate;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
+    if (diffHours < 24) {
+        return `${diffHours} hours and ${diffMinutes} minutes ago`;
+    } else {
+        const day = String(postDate.getDate()).padStart(2, '0');
+        const month = String(postDate.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const year = postDate.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+};
 const loadFeed = () => {
     apiCall('job/feed?start=0', 'GET', {}).then((data) => {
         const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
