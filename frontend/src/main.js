@@ -5,7 +5,7 @@ import { fileToDataUrl } from './helpers.js';
 let saveProfileHandler = null;
 let jobIds = [];
 let myId = null;
-
+let userCache = {};
 //Error popup
 const showErrorModal = (message) => {
     const modalElement = document.getElementById('error-modal');
@@ -28,7 +28,21 @@ function removeModalBackdrop() {
     document.body.style.paddingRight = '';
 }
 
+const getUserName = async (userId) => {
+    // if userId in Cache, return it directly
+    if (userCache[userId]) {
+        return userCache[userId];
+    }
 
+    try {
+        const userData = await apiCall(`user?userId=${userId}`, 'GET', {});
+        userCache[userId] = userData.name; // add it to userCache
+        return userData.name;
+    } catch (error) {
+        console.error(`Error fetching user name for userId ${userId}:`, error);
+        return `User ID: ${userId}`;
+    }
+};
 //send request to backend
 function apiCall(path, method, data) {
     return new Promise((resolve,reject)=>{
@@ -191,8 +205,13 @@ const createJobElement = (job, index, jobsArray) => {
     postedByStrong.textContent = 'Posted by: ';
     const creatorLink = document.createElement('a');
     creatorLink.href = '#';
-    creatorLink.textContent = job.creatorId || 'Unknown User';
     creatorLink.dataset.userId = job.creatorId;
+
+    // Asynchronously get the username and update the DOM
+    getUserName(job.creatorId).then(name => {
+        creatorLink.textContent = name;
+    });
+
     creatorLink.addEventListener('click', (e) => {
         e.preventDefault();
         showPage('other-profile', job.creatorId);
@@ -258,7 +277,6 @@ const createJobElement = (job, index, jobsArray) => {
     commentsCountP.appendChild(document.createTextNode(commentsCount));
     jobContainer.appendChild(commentsCountP);
 
-    // Comments
     const commentsDiv = document.createElement('div');
     commentsDiv.className = 'comments';
     if (job.comments && job.comments.length > 0) {
@@ -266,7 +284,17 @@ const createJobElement = (job, index, jobsArray) => {
         for (const comment of job.comments) {
             const commentItem = document.createElement('li');
             const commentStrong = document.createElement('strong');
-            commentStrong.textContent = `${comment.userName}: `;
+            const userLink = document.createElement('a');
+            userLink.href = '#';
+            userLink.dataset.userId = comment.userId;
+            getUserName(comment.userId).then(name => {
+                userLink.textContent = `${name}: `;
+            });
+            userLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('other-profile', comment.userId);
+            });
+            commentStrong.appendChild(userLink);
             commentItem.appendChild(commentStrong);
             commentItem.appendChild(document.createTextNode(comment.comment));
             commentsList.appendChild(commentItem);
@@ -279,6 +307,8 @@ const createJobElement = (job, index, jobsArray) => {
     }
     jobContainer.appendChild(commentsDiv);
 
+
+
     // Like button event listener
     likeButton.addEventListener('click', () => {
         ifLiked = !ifLiked;
@@ -290,6 +320,7 @@ const createJobElement = (job, index, jobsArray) => {
             })
             .catch((error) => showErrorModal('Error: ' + error));
     });
+
 
     // Show Likes button event listener
     showLikesButton.addEventListener('click', () => {
@@ -306,10 +337,30 @@ const createJobElement = (job, index, jobsArray) => {
                 noLikesItem.textContent = 'No likes yet.';
                 likesList.appendChild(noLikesItem);
             } else {
-                likes.forEach((like) => {
-                    const likeItem = document.createElement('li');
-                    likeItem.textContent = `${like.userName} (Email: ${like.userEmail})`;
-                    likesList.appendChild(likeItem);
+                Promise.all(
+                    likes.map(like =>
+                        getUserName(like.userId).then(name => ({
+                            userId: like.userId,
+                            userName: name,
+                            userEmail: like.userEmail
+                        }))
+                    )
+                ).then(likeUsers => {
+                    likeUsers.forEach(likeUser => {
+                        const likeItem = document.createElement('li');
+                        const userLink = document.createElement('a');
+                        userLink.href = '#';
+                        userLink.textContent = `${likeUser.userName} (Email: ${likeUser.userEmail})`;
+                        userLink.dataset.userId = likeUser.userId;
+                        userLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            showPage('other-profile', likeUser.userId);
+                        });
+                        likeItem.appendChild(userLink);
+                        likesList.appendChild(likeItem);
+                    });
+                }).catch(error => {
+                    showErrorModal('Error loading likes: ' + error);
                 });
             }
             likesListDiv.appendChild(likesList);
@@ -513,7 +564,21 @@ const loadOtherProfile = (userId) => {
         }
         profileContent.appendChild(watchersList);
 
-        
+        // Jobs
+        const jobsHeader = document.createElement('h3');
+        jobsHeader.textContent = 'Created Jobs:';
+        profileContent.appendChild(jobsHeader);
+
+        if (data.jobs && data.jobs.length > 0) {
+            data.jobs.forEach((job, index) => {
+                const jobElement = createJobElement(job, index, data.jobs);
+                profileContent.appendChild(jobElement);
+            });
+        } else {
+            const noJobs = document.createElement('p');
+            noJobs.textContent = 'No jobs created yet.';
+            profileContent.appendChild(noJobs);
+        }
     }).catch((error) => {
         showErrorModal(error);
     });
