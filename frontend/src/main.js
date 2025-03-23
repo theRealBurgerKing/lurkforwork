@@ -310,6 +310,71 @@ const loadProfile = ()=>{
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
         }
+
+        // Edit-Profile button
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit Profile';
+        editButton.className = 'btn btn-primary';
+        editButton.id = 'btn-edit-profile';
+        profileContent.appendChild(editButton);
+
+        // Populate the value of Modal
+        document.getElementById('edit-name').value = data.name;
+        document.getElementById('edit-email').value = data.email;
+        document.getElementById('edit-password').value = '';
+        document.getElementById('edit-image').value = '';
+
+        editButton.addEventListener('click', () => {
+            const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
+            modal.show();
+        });
+
+        // Save changes event listener
+        const saveButton = document.getElementById('save-profile-changes');
+        saveButton.removeEventListener('click', saveProfileHandler); 
+        saveButton.addEventListener('click', saveProfileHandler);
+
+        function saveProfileHandler() {
+            const updatedData = {};
+            const name = document.getElementById('edit-name').value;
+            const email = document.getElementById('edit-email').value;
+            const password = document.getElementById('edit-password').value;
+            const imageFile = document.getElementById('edit-image').files[0];
+
+            if (name && name !== data.name) updatedData.name = name;
+            if (email && email !== data.email) updatedData.email = email;
+            if (password) updatedData.password = password;
+
+            if (imageFile) {
+                fileToDataUrl(imageFile)
+                    .then((dataUrl) => {
+                        updatedData.image = dataUrl;
+                        sendUpdateRequest(updatedData);
+                    })
+                    .catch((error) => showErrorModal('Error processing image: ' + error));
+            } else {
+                sendUpdateRequest(updatedData);
+            }
+        }
+
+        function sendUpdateRequest(updatedData) {
+            if (Object.keys(updatedData).length === 0) {
+                modal.hide();
+                showErrorModal('No changes to save.');
+                return;
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
+            const editButton = document.getElementById('btn-edit-profile');
+            
+            apiCall('user', 'PUT', updatedData)
+                .then(() => {
+                    modal.hide();
+                    showErrorModal('Profile updated successfully! Reloading profile...');
+                    editButton.focus();
+                    setTimeout(() => loadProfile(), 1000); // Refresh profile
+                })
+                .catch((error) => showErrorModal(error));
+        }
         // user who watch me
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = 'Users who watch me:';
