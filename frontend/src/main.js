@@ -526,6 +526,27 @@ const loadOtherProfile = (userId) => {
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
         }
+        // Watch/Unwatch Button
+        const watchButton = document.createElement('button');
+        watchButton.className = 'btn btn-primary';
+        const isWatching = data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.includes(myId);
+        watchButton.textContent = isWatching ? 'Unwatch' : 'Watch';
+        watchButton.addEventListener('click', () => {
+            const turnon = !isWatching;
+            apiCall('user/watch', 'PUT', { id: userId, turnon })
+                .then(() => {
+                    showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
+                    setTimeout(() => {
+                        loadOtherProfile(userId); // refresh the page
+                    }, 1000);
+                })
+                .catch(error => {
+                    showErrorModal('Error: ' + error);
+                });
+        });
+        profileContent.appendChild(watchButton);
+
+
         // Users who watch this user
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
