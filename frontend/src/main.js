@@ -2,23 +2,23 @@ import { BACKEND_PORT } from './config.js';
 // A helper you may want to use when uploading new images to the server.
 import { fileToDataUrl } from './helpers.js';
 
-let saveProfileHandler = null; // 初始化为null
+let saveProfileHandler = null;
 let jobIds = [];
 let myId = null;
+
 //Error popup
 const showErrorModal = (message) => {
     const modal = new bootstrap.Modal(document.getElementById('error-modal'));
     document.getElementById('error-message').textContent = message;
     modal.show();
 };
+
+//remove mask element
 function removeModalBackdrop() {
-    // 移除所有模态框背景
     const backdrops = document.querySelectorAll('.modal-backdrop');
     backdrops.forEach(backdrop => {
         backdrop.remove();
     });
-    
-    // 移除body上的modal-open类，恢复滚动
     document.body.classList.remove('modal-open');
     document.body.style.overflow = '';
     document.body.style.paddingRight = '';
@@ -47,6 +47,7 @@ function apiCall(path, method, data) {
         });  
     })
 }
+
 //register
 document.getElementById('btn-register').addEventListener('click', () => {
     const email = document.getElementById('register-email').value;
@@ -112,6 +113,7 @@ document.getElementById('btn-logout').addEventListener('click',()=>{
     document.getElementById("btn-profile").style.display = "none";
     showPage('register');
 });
+
 function sendUpdateRequest(updatedData) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
     const editButton = document.getElementById('btn-edit-profile');
@@ -122,7 +124,6 @@ function sendUpdateRequest(updatedData) {
         showErrorModal('No changes to save.');
         return;
     }
-    console.log('Sending PUT request with:', updatedData); // 调试：输出实际发送的数据
 
     apiCall('user', 'PUT', updatedData)
         .then(() => {
@@ -130,7 +131,7 @@ function sendUpdateRequest(updatedData) {
             removeModalBackdrop();
             showErrorModal('Profile updated successfully! Reloading profile...');
             editButton.focus();
-            setTimeout(() => loadProfile(), 1000); // Refresh profile
+            setTimeout(() => loadProfile(), 1000); //Refresh profile
         })
         .catch((error) => {
             modal.hide();
@@ -138,6 +139,7 @@ function sendUpdateRequest(updatedData) {
             showErrorModal('Failed to update: '+error);
         })
 };
+
 //show page named [pageName] and hide other
 const showPage = (pageName)=>{
     const pages = document.querySelectorAll('.page');
@@ -152,13 +154,14 @@ const showPage = (pageName)=>{
         loadProfile();
     }
 };
+
 // create Jobs and add interact
 const createJobElement = (job, index, jobsArray) => {
     const jobContainer = document.createElement('div');
     jobContainer.className = 'job-post';
 
     // Image
-    if (job.image) {
+    if (job.image){
         const img = document.createElement('img');
         img.src = job.image;
         img.alt = job.title;
@@ -264,6 +267,7 @@ const createJobElement = (job, index, jobsArray) => {
             .then(() => {
                 likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
                 showErrorModal(`${ifLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
+                loadFeed();
             })
             .catch((error) => showErrorModal('Error: ' + error));
     });
@@ -319,6 +323,7 @@ const formatTimeAgo = (createdAt) => {
         return `${day}/${month}/${year}`;
     }
 };
+
 //profile page
 const loadProfile = ()=>{
     document.getElementById("btn-profile").style.display = "none";
@@ -349,7 +354,6 @@ const loadProfile = ()=>{
             profileContent.appendChild(img);
         }
 
-
         // Populate the value of Modal
         document.getElementById('edit-name').value = data.name;
         document.getElementById('edit-email').value = data.email;
@@ -363,14 +367,13 @@ const loadProfile = ()=>{
             modal.show();
         });
 
-        // 移除旧的处理器并创建一个新的
+        // remove old EventListener
         const saveButton = document.getElementById('save-profile-changes');
         if (saveProfileHandler) {
             saveButton.removeEventListener('click', saveProfileHandler);
         }
 
-
-        // 定义一个新的saveProfileHandler，捕获当前的data
+        // create new Eventlistener
         saveProfileHandler = function() {
             const updatedData = {};
             const name = document.getElementById('edit-name').value;
@@ -381,10 +384,6 @@ const loadProfile = ()=>{
             if (name && name !== data.name) updatedData.name = name;
             if (email && email !== data.email) updatedData.email = email;
             if (password) updatedData.password = password;
-            
-
-            console.log('Preparing to send updated data:', updatedData); // 调试：输出准备发送的数据
-
             if (imageFile) {
                 fileToDataUrl(imageFile)
                     .then((dataUrl) => {
@@ -398,18 +397,10 @@ const loadProfile = ()=>{
         };
         saveButton.addEventListener('click', saveProfileHandler);
 
-        
-        //Bind save event outside the loop to avoid duplicates
-        // saveButton = document.getElementById('save-profile-changes');
-        // saveButton.removeEventListener('click', saveProfileHandler);
-        // saveButton.addEventListener('click', saveProfileHandler);
-
-
         // user who watch me
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = 'Users who watch me:';
         profileContent.appendChild(watchersHeader);
-
         const watchersList = document.createElement('ul');
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
             data.usersWhoWatchMeUserIds.forEach((userId) => {
@@ -465,7 +456,6 @@ for (const atag of document.querySelectorAll('a')) {
     if (atag.hasAttribute('internal-link')) {
         atag.addEventListener('click', () => {
             const pageName = atag.getAttribute('internal-link');
-            // console.log('pageName', pageName);
             showPage(pageName);
         });
     }
