@@ -62,8 +62,34 @@
   </div>
 </div>
 
+<!-- Search Modal -->
+<div class="modal fade" id="search-modal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="searchModalLabel">Search User to Watch</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <form id="search-form">
+                  <div class="mb-3">
+                      <label for="search-email" class="form-label">Enter Email Address:</label>
+                      <input type="email" class="form-control" id="search-email" placeholder="example@email.com" required>
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" id="search-watch-btn">Watch</button>
+          </div>
+      </div>
+  </div>
+</div>
+
+
   <main role="main">
     <button id="btn-profile">Profile</button>
+    <button id="btn-search" class="btn btn-secondary">Search</button>
     <!-- page-login -->
     <div id = "page-login" class = "page hide">
       <h1>Login</h1>

@@ -129,6 +129,7 @@ document.getElementById('btn-profileback').addEventListener('click', () => {
 document.getElementById('btn-logout').addEventListener('click',()=>{
     localStorage.removeItem('lurkforwork_token');
     document.getElementById("btn-profile").style.display = "none";
+    document.getElementById("btn-search").style.display = "none";
     showPage('register');
 });
 
@@ -397,6 +398,7 @@ const formatTimeAgo = (createdAt) => {
 //profile page
 const loadProfile = ()=>{
     document.getElementById("btn-profile").style.display = "none";
+    document.getElementById("btn-search").style.display = "none";
     if (!myId) {
         showErrorModal('User ID not found. Please log in again.');
         return;
@@ -506,6 +508,7 @@ const loadProfile = ()=>{
 }
 //load other profile
 const loadOtherProfile = (userId) => {
+    document.getElementById("btn-search").style.display = "none";
     const profileContent = document.getElementById('other-profile-content');
     profileContent.innerHTML = '';
     apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
@@ -607,6 +610,7 @@ const loadOtherProfile = (userId) => {
 //feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
+    document.getElementById("btn-search").style.display = "block";
     apiCall('job/feed?start=0', 'GET', {}).then((data) => {
         const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const feedContent = document.getElementById('feed-content');
@@ -620,6 +624,36 @@ const loadFeed = () => {
         });
     }).catch((error) => showErrorModal(error));
 };
+
+
+// Search button event listener
+document.getElementById('btn-search').addEventListener('click', () => {
+    removeModalBackdrop();
+    const searchModal = new bootstrap.Modal(document.getElementById('search-modal'));
+    searchModal.show();
+});
+
+// Watch user by email event listener
+document.getElementById('search-watch-btn').addEventListener('click', () => {
+    const email = document.getElementById('search-email').value.trim();
+    const modal = bootstrap.Modal.getInstance(document.getElementById('search-modal'));
+    if (!email) {
+        showErrorModal('Please enter a valid email address.');
+        return;
+    }
+
+    apiCall('user/watch', 'PUT', { email, turnon: true })
+        .then(() => {
+            modal.hide();
+            removeModalBackdrop();
+            showErrorModal('User watched successfully!');
+        })
+        .catch(error => {
+            showErrorModal('Error watching user: ' + error);
+        });
+});
+
+
 
 for (const atag of document.querySelectorAll('a')) {
     if (atag.hasAttribute('internal-link')) {
