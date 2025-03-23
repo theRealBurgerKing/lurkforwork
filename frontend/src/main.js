@@ -113,6 +113,97 @@ const showPage = (pageName)=>{
         loadProfile();
     }
 };
+// create Jobs and add interact
+const createJobElement = (job, index, jobsArray) => {
+    const jobContainer = document.createElement('div');
+    jobContainer.className = 'job-post';
+
+    // Image
+    if (job.image) {
+        const img = document.createElement('img');
+        img.src = job.image;
+        img.alt = job.title;
+        img.style.maxWidth = '100%';
+        jobContainer.appendChild(img);
+    }
+
+    // Title
+    const title = document.createElement('h3');
+    title.textContent = job.title;
+    jobContainer.appendChild(title);
+
+    // Posted by
+    const postedByP = document.createElement('p');
+    const postedByStrong = document.createElement('strong');
+    postedByStrong.textContent = 'Posted by: ';
+    postedByP.appendChild(postedByStrong);
+    postedByP.appendChild(document.createTextNode(job.creatorId || 'Unknown User'));
+    jobContainer.appendChild(postedByP);
+
+    // Posted time
+    const postedTimeP = document.createElement('p');
+    const postedTimeStrong = document.createElement('strong');
+    postedTimeStrong.textContent = 'Posted: ';
+    postedTimeP.appendChild(postedTimeStrong);
+    postedTimeP.appendChild(document.createTextNode(formatTimeAgo(job.createdAt)));
+    jobContainer.appendChild(postedTimeP);
+
+    // Start Date
+    const startDateP = document.createElement('p');
+    const startDateStrong = document.createElement('strong');
+    startDateStrong.textContent = 'Start Date: ';
+    startDateP.appendChild(startDateStrong);
+    startDateP.appendChild(document.createTextNode(job.start.split('T')[0].split('-').reverse().join('/')));
+    jobContainer.appendChild(startDateP);
+
+    // Likes
+    const likesCount = job.likes ? job.likes.length : 0;
+    const likesP = document.createElement('p');
+    const likesStrong = document.createElement('strong');
+    likesStrong.textContent = 'Likes: ';
+    const likeButton = document.createElement('button');
+    likeButton.className = 'like-job';
+    likeButton.dataset.jobId = job.id;
+    likeButton.dataset.index = index;
+    let ifLiked = job.likes && job.likes.some(like => like.userId === myId);
+    likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
+    const showLikesButton = document.createElement('button');
+    showLikesButton.textContent = 'Show Likes';
+    showLikesButton.className = 'show-likes-btn';
+    showLikesButton.dataset.index = index;
+    likesP.appendChild(likesStrong);
+    likesP.appendChild(likeButton);
+    likesP.appendChild(document.createTextNode(` ${likesCount}`));
+    likesP.appendChild(showLikesButton);
+    jobContainer.appendChild(likesP);
+
+    // Likes list (hidden by default)
+    const likesListDiv = document.createElement('div');
+    likesListDiv.className = 'likes-list';
+    likesListDiv.style.display = 'none';
+    jobContainer.appendChild(likesListDiv);
+
+    // Description
+    const descriptionP = document.createElement('p');
+    descriptionP.textContent = job.description;
+    jobContainer.appendChild(descriptionP);
+
+    // Comments count
+    const commentsCount = job.comments ? job.comments.length : 0;
+    const commentsCountP = document.createElement('p');
+    const commentsCountStrong = document.createElement('strong');
+    commentsCountStrong.textContent = 'Comments: ';
+    commentsCountP.appendChild(commentsCountStrong);
+    commentsCountP.appendChild(document.createTextNode(commentsCount));
+    jobContainer.appendChild(commentsCountP);
+
+    
+
+    
+
+    return jobContainer;
+};
+
 
 //calculate diff between now and "createdAt"
 const formatTimeAgo = (createdAt) => {
@@ -180,95 +271,26 @@ const loadProfile = ()=>{
         }
         profileContent.appendChild(watchersList);
 
-        /////
+        // Jobs
         const jobsHeader = document.createElement('h3');
         jobsHeader.textContent = 'Created Jobs:';
         profileContent.appendChild(jobsHeader);
 
-        const jobsList = document.createElement('ul');
         if (data.jobs && data.jobs.length > 0) {
-            data.jobs.forEach((job) => {
-                const jobItem = document.createElement('li');
-
-                // title & createdAt
-                const titleStrong = document.createElement('strong');
-                titleStrong.textContent = job.title;
-                jobItem.appendChild(titleStrong);
-                jobItem.appendChild(document.createTextNode(` - Created: ${formatTimeAgo(job.createdAt)}`));
-
-                // img
-                if (job.image) {
-                    const jobImg = document.createElement('img');
-                    jobImg.src = job.image;
-                    jobImg.alt = job.title;
-                    jobImg.style.maxWidth = '100px';
-                    jobItem.appendChild(jobImg);
-                }
-                const jobDetails = document.createElement('ul');
-
-                // Started date
-                const startItem = document.createElement('li');
-                startItem.textContent = `Start: ${job.start.split('T')[0].split('-').reverse().join('/')}`;
-                jobDetails.appendChild(startItem);
-
-                // description
-                const descItem = document.createElement('li');
-                descItem.textContent = `Description: ${job.description}`;
-                jobDetails.appendChild(descItem);
-
-                // Likes
-                const likesHeader = document.createElement('strong');
-                likesHeader.textContent = 'Likes:';
-                const likesList = document.createElement('ul');
-                likesList.appendChild(likesHeader);
-
-                if (job.likes && job.likes.length > 0) {
-                    job.likes.forEach((like) => {
-                        const likeItem = document.createElement('li');
-                        likeItem.textContent = `${like.userName} (Email: ${like.userEmail})`;
-                        likesList.appendChild(likeItem);
-                    });
-                } else {
-                    const noLikes = document.createElement('li');
-                    noLikes.textContent = 'No likes yet.';
-                    likesList.appendChild(noLikes);
-                }
-                jobDetails.appendChild(likesList);
-
-                // comments
-                const commentsHeader = document.createElement('strong');
-                commentsHeader.textContent = 'Comments:';
-                const commentsList = document.createElement('ul');
-                commentsList.appendChild(commentsHeader);
-
-                if (job.comments && job.comments.length > 0) {
-                    job.comments.forEach((comment) => {
-                        const commentItem = document.createElement('li');
-                        commentItem.textContent = `${comment.userName}: ${comment.comment}`;
-                        commentsList.appendChild(commentItem);
-                    });
-                } else {
-                    const noComments = document.createElement('li');
-                    noComments.textContent = 'No comments yet.';
-                    commentsList.appendChild(noComments);
-                }
-                jobDetails.appendChild(commentsList);
-
-                jobItem.appendChild(jobDetails);
-                jobsList.appendChild(jobItem);
+            data.jobs.forEach((job, index) => {
+                const jobElement = createJobElement(job, index, data.jobs);
+                profileContent.appendChild(jobElement);
             });
         } else {
-            const noJobs = document.createElement('li');
+            const noJobs = document.createElement('p');
             noJobs.textContent = 'No jobs created yet.';
-            jobsList.appendChild(noJobs);
+            profileContent.appendChild(noJobs);
         }
-        profileContent.appendChild(jobsList);
-        
-        /////
     }).catch((error) => {
         showErrorModal(error);
     });
 }
+
 //feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
