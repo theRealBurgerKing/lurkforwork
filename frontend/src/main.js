@@ -179,6 +179,92 @@ const loadProfile = ()=>{
             watchersList.appendChild(noWatchers);
         }
         profileContent.appendChild(watchersList);
+
+        /////
+        const jobsHeader = document.createElement('h3');
+        jobsHeader.textContent = 'Created Jobs:';
+        profileContent.appendChild(jobsHeader);
+
+        const jobsList = document.createElement('ul');
+        if (data.jobs && data.jobs.length > 0) {
+            data.jobs.forEach((job) => {
+                const jobItem = document.createElement('li');
+
+                // title & createdAt
+                const titleStrong = document.createElement('strong');
+                titleStrong.textContent = job.title;
+                jobItem.appendChild(titleStrong);
+                jobItem.appendChild(document.createTextNode(` - Created: ${formatTimeAgo(job.createdAt)}`));
+
+                // img
+                if (job.image) {
+                    const jobImg = document.createElement('img');
+                    jobImg.src = job.image;
+                    jobImg.alt = job.title;
+                    jobImg.style.maxWidth = '100px';
+                    jobItem.appendChild(jobImg);
+                }
+                const jobDetails = document.createElement('ul');
+
+                // Started date
+                const startItem = document.createElement('li');
+                startItem.textContent = `Start: ${job.start.split('T')[0].split('-').reverse().join('/')}`;
+                jobDetails.appendChild(startItem);
+
+                // description
+                const descItem = document.createElement('li');
+                descItem.textContent = `Description: ${job.description}`;
+                jobDetails.appendChild(descItem);
+
+                // Likes
+                const likesHeader = document.createElement('strong');
+                likesHeader.textContent = 'Likes:';
+                const likesList = document.createElement('ul');
+                likesList.appendChild(likesHeader);
+
+                if (job.likes && job.likes.length > 0) {
+                    job.likes.forEach((like) => {
+                        const likeItem = document.createElement('li');
+                        likeItem.textContent = `${like.userName} (Email: ${like.userEmail})`;
+                        likesList.appendChild(likeItem);
+                    });
+                } else {
+                    const noLikes = document.createElement('li');
+                    noLikes.textContent = 'No likes yet.';
+                    likesList.appendChild(noLikes);
+                }
+                jobDetails.appendChild(likesList);
+
+                // comments
+                const commentsHeader = document.createElement('strong');
+                commentsHeader.textContent = 'Comments:';
+                const commentsList = document.createElement('ul');
+                commentsList.appendChild(commentsHeader);
+
+                if (job.comments && job.comments.length > 0) {
+                    job.comments.forEach((comment) => {
+                        const commentItem = document.createElement('li');
+                        commentItem.textContent = `${comment.userName}: ${comment.comment}`;
+                        commentsList.appendChild(commentItem);
+                    });
+                } else {
+                    const noComments = document.createElement('li');
+                    noComments.textContent = 'No comments yet.';
+                    commentsList.appendChild(noComments);
+                }
+                jobDetails.appendChild(commentsList);
+
+                jobItem.appendChild(jobDetails);
+                jobsList.appendChild(jobItem);
+            });
+        } else {
+            const noJobs = document.createElement('li');
+            noJobs.textContent = 'No jobs created yet.';
+            jobsList.appendChild(noJobs);
+        }
+        profileContent.appendChild(jobsList);
+        
+        /////
     }).catch((error) => {
         showErrorModal(error);
     });
