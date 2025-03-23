@@ -15,6 +15,10 @@ html, body {
     margin: 20px 0;
     padding: 10px;
     border: 1px solid #ccc;
+    background-color: aquamarine;
+    border-radius: 20px;
+    margin-left: 8vw;
+    margin-right: 8vw;
 }
 .job-post img {
     max-width: 100%;
@@ -51,4 +55,8 @@ html, body {
     right: 120px;
     z-index: 1000; 
     display: none;
+}
+
+#btn-search:hover {
+    background-color: #0056b3;
 }

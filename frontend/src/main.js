@@ -6,6 +6,33 @@ let saveProfileHandler = null;
 let jobIds = [];
 let myId = null;
 let userCache = {};
+// reload current page
+const reloadCurrentPage = (targetUserId = null) => {
+    const pages = document.querySelectorAll('.page');
+    let currentPage = null;
+    for (const page of pages) {
+        if (!page.classList.contains('hide')) {
+            currentPage = page.id;
+            break;
+        }
+    }
+
+    if (currentPage === 'page-feed') {
+        loadFeed();
+    } else if (currentPage === 'page-profile') {
+        loadProfile();
+    } else if (currentPage === 'page-other-profile') {
+        if (targetUserId) {
+            loadOtherProfile(targetUserId);
+        } else {
+            showErrorModal('Target user ID not found for other-profile page.');
+        }
+    } else {
+        showErrorModal('Unable to determine current page or target user ID.');
+    }
+};
+
+
 //Error popup
 const showErrorModal = (message) => {
     const modalElement = document.getElementById('error-modal');
@@ -120,6 +147,7 @@ document.getElementById('btn-profile').addEventListener('click', () => {
     showPage('profile');
 });
 
+
 //back to feed
 document.getElementById('btn-profileback').addEventListener('click', () => {
     showPage('feed');
@@ -154,7 +182,7 @@ function sendUpdateRequest(updatedData) {
             removeModalBackdrop();
             showErrorModal('Profile updated successfully! Reloading profile...');
             editButton.focus();
-            setTimeout(() => loadProfile(), 1000); //Refresh profile
+            reloadCurrentPage(); //Refresh profile
         })
         .catch((error) => {
             modal.hide();
@@ -181,8 +209,8 @@ const showPage = (pageName,targetUserId=null)=>{
     }
 };
 
-// create Jobs and add interact
-const createJobElement = (job, index, jobsArray) => {
+// show Jobs and add interact
+const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     const jobContainer = document.createElement('div');
     jobContainer.className = 'job-post';
 
@@ -317,7 +345,7 @@ const createJobElement = (job, index, jobsArray) => {
             .then(() => {
                 likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
                 showErrorModal(`${ifLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
-                loadFeed();
+                reloadCurrentPage(targetUserId);
             })
             .catch((error) => showErrorModal('Error: ' + error));
     });
@@ -495,6 +523,11 @@ const loadProfile = ()=>{
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
                 const jobElement = createJobElement(job, index, data.jobs);
+                // //remove like btn in myself profile
+                // const likeButtons = jobElement.querySelectorAll('.like-job');
+                // likeButtons.forEach(button => button.remove());
+
+
                 profileContent.appendChild(jobElement);
             });
         } else {
@@ -539,9 +572,7 @@ const loadOtherProfile = (userId) => {
             apiCall('user/watch', 'PUT', { id: userId, turnon })
                 .then(() => {
                     showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
-                    setTimeout(() => {
-                        loadOtherProfile(userId); // refresh the page
-                    }, 1000);
+                    reloadCurrentPage(userId);
                 })
                 .catch(error => {
                     showErrorModal('Error: ' + error);
@@ -595,7 +626,7 @@ const loadOtherProfile = (userId) => {
 
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
-                const jobElement = createJobElement(job, index, data.jobs);
+                const jobElement = createJobElement(job, index, data.jobs,userId);
                 profileContent.appendChild(jobElement);
             });
         } else {
