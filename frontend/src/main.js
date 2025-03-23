@@ -8,9 +8,13 @@ let myId = null;
 
 //Error popup
 const showErrorModal = (message) => {
-    const modal = new bootstrap.Modal(document.getElementById('error-modal'));
+    const modalElement = document.getElementById('error-modal');
+    const modal = new bootstrap.Modal(modalElement);
     document.getElementById('error-message').textContent = message;
+    modalElement.setAttribute('aria-hidden', 'false');
     modal.show();
+    const closeButton = modalElement.querySelector('.btn-close');
+    if (closeButton) closeButton.focus();
 };
 
 //remove mask element
@@ -114,6 +118,10 @@ document.getElementById('btn-logout').addEventListener('click',()=>{
     showPage('register');
 });
 
+//back to feed (otherprofile)
+document.getElementById('btn-other-profile-back').addEventListener('click', () => {
+    showPage('feed');
+});
 function sendUpdateRequest(updatedData) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
     const editButton = document.getElementById('btn-edit-profile');
@@ -141,7 +149,7 @@ function sendUpdateRequest(updatedData) {
 };
 
 //show page named [pageName] and hide other
-const showPage = (pageName)=>{
+const showPage = (pageName,targetUserId=null)=>{
     const pages = document.querySelectorAll('.page');
     for (const page of pages){
         page.classList.add('hide');
@@ -152,6 +160,9 @@ const showPage = (pageName)=>{
     }
     if(pageName==='profile'){
         loadProfile();
+    }
+    if (pageName === 'other-profile' && targetUserId) {
+        loadOtherProfile(targetUserId);
     }
 };
 
@@ -178,8 +189,16 @@ const createJobElement = (job, index, jobsArray) => {
     const postedByP = document.createElement('p');
     const postedByStrong = document.createElement('strong');
     postedByStrong.textContent = 'Posted by: ';
+    const creatorLink = document.createElement('a');
+    creatorLink.href = '#';
+    creatorLink.textContent = job.creatorId || 'Unknown User';
+    creatorLink.dataset.userId = job.creatorId;
+    creatorLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showPage('other-profile', job.creatorId);
+    });
     postedByP.appendChild(postedByStrong);
-    postedByP.appendChild(document.createTextNode(job.creatorId || 'Unknown User'));
+    postedByP.appendChild(creatorLink);
     jobContainer.appendChild(postedByP);
 
     // Posted time
@@ -434,7 +453,71 @@ const loadProfile = ()=>{
         showErrorModal(error);
     });
 }
+//load other profile
+const loadOtherProfile = (userId) => {
+    const profileContent = document.getElementById('other-profile-content');
+    profileContent.innerHTML = '';
+    apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
+        console.log(data);
+        // Name
+        const nameHeader = document.createElement('h2');
+        nameHeader.textContent = data.name;
+        profileContent.appendChild(nameHeader);
+        // Email
+        const emailP = document.createElement('p');
+        emailP.textContent = `Email: ${data.email}`;
+        profileContent.appendChild(emailP);
+        // Profile picture
+        if (data.image) {
+            const img = document.createElement('img');
+            img.src = data.image;
+            img.alt = `${data.name}'s profile picture`;
+            img.style.maxWidth = '200px';
+            profileContent.appendChild(img);
+        }
+        // Users who watch this user
+        const watchersHeader = document.createElement('h3');
+        watchersHeader.textContent = `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
+        profileContent.appendChild(watchersHeader);
 
+        const watchersList = document.createElement('ul');
+        if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
+            Promise.all(
+                data.usersWhoWatchMeUserIds.map(userId =>
+                    apiCall(`user?userId=${userId}`, 'GET', {}).then(userData => ({
+                        userId,
+                        name: userData.name
+                    }))
+                )
+            ).then(watchers => {
+                watchers.forEach(watcher => {
+                    const watcherItem = document.createElement('li');
+                    const watcherLink = document.createElement('a');
+                    watcherLink.href = '#';
+                    watcherLink.textContent = watcher.name;
+                    watcherLink.dataset.userId = watcher.userId;
+                    watcherLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showPage('other-profile', watcher.userId);
+                    });
+                    watcherItem.appendChild(watcherLink);
+                    watchersList.appendChild(watcherItem);
+                });
+            }).catch(error => {
+                showErrorModal('Error loading watchers: ' + error);
+            });
+        } else {
+            const noWatchers = document.createElement('li');
+            noWatchers.textContent = 'No users are watching this user.';
+            watchersList.appendChild(noWatchers);
+        }
+        profileContent.appendChild(watchersList);
+
+        
+    }).catch((error) => {
+        showErrorModal(error);
+    });
+};
 //feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
