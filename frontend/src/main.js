@@ -2,6 +2,7 @@ import { BACKEND_PORT } from './config.js';
 // A helper you may want to use when uploading new images to the server.
 import { fileToDataUrl } from './helpers.js';
 
+let saveProfileHandler = null; // 初始化为null
 let jobIds = [];
 let myId = null;
 //Error popup
@@ -10,6 +11,19 @@ const showErrorModal = (message) => {
     document.getElementById('error-message').textContent = message;
     modal.show();
 };
+function removeModalBackdrop() {
+    // 移除所有模态框背景
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => {
+        backdrop.remove();
+    });
+    
+    // 移除body上的modal-open类，恢复滚动
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
+
 
 //send request to backend
 function apiCall(path, method, data) {
@@ -98,7 +112,32 @@ document.getElementById('btn-logout').addEventListener('click',()=>{
     document.getElementById("btn-profile").style.display = "none";
     showPage('register');
 });
+function sendUpdateRequest(updatedData) {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
+    const editButton = document.getElementById('btn-edit-profile');
+    const saveButton = document.getElementById('save-profile-changes');
+    if (Object.keys(updatedData).length === 0) {
+        modal.hide();
+        removeModalBackdrop();
+        showErrorModal('No changes to save.');
+        return;
+    }
+    console.log('Sending PUT request with:', updatedData); // 调试：输出实际发送的数据
 
+    apiCall('user', 'PUT', updatedData)
+        .then(() => {
+            modal.hide();
+            removeModalBackdrop();
+            showErrorModal('Profile updated successfully! Reloading profile...');
+            editButton.focus();
+            setTimeout(() => loadProfile(), 1000); // Refresh profile
+        })
+        .catch((error) => {
+            modal.hide();
+            removeModalBackdrop();
+            showErrorModal('Failed to update: '+error);
+        })
+};
 //show page named [pageName] and hide other
 const showPage = (pageName)=>{
     const pages = document.querySelectorAll('.page');
@@ -283,7 +322,6 @@ const formatTimeAgo = (createdAt) => {
 //profile page
 const loadProfile = ()=>{
     document.getElementById("btn-profile").style.display = "none";
-    console.log(myId);
     if (!myId) {
         showErrorModal('User ID not found. Please log in again.');
         return;
@@ -311,12 +349,6 @@ const loadProfile = ()=>{
             profileContent.appendChild(img);
         }
 
-        // Edit-Profile button
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Edit Profile';
-        editButton.className = 'btn btn-primary';
-        editButton.id = 'btn-edit-profile';
-        profileContent.appendChild(editButton);
 
         // Populate the value of Modal
         document.getElementById('edit-name').value = data.name;
@@ -324,17 +356,22 @@ const loadProfile = ()=>{
         document.getElementById('edit-password').value = '';
         document.getElementById('edit-image').value = '';
 
+        const editButton = document.getElementById('btn-edit-profile');
         editButton.addEventListener('click', () => {
+            removeModalBackdrop();
             const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
             modal.show();
         });
 
-        // Save changes event listener
+        // 移除旧的处理器并创建一个新的
         const saveButton = document.getElementById('save-profile-changes');
-        saveButton.removeEventListener('click', saveProfileHandler); 
-        saveButton.addEventListener('click', saveProfileHandler);
+        if (saveProfileHandler) {
+            saveButton.removeEventListener('click', saveProfileHandler);
+        }
 
-        function saveProfileHandler() {
+
+        // 定义一个新的saveProfileHandler，捕获当前的data
+        saveProfileHandler = function() {
             const updatedData = {};
             const name = document.getElementById('edit-name').value;
             const email = document.getElementById('edit-email').value;
@@ -344,6 +381,9 @@ const loadProfile = ()=>{
             if (name && name !== data.name) updatedData.name = name;
             if (email && email !== data.email) updatedData.email = email;
             if (password) updatedData.password = password;
+            
+
+            console.log('Preparing to send updated data:', updatedData); // 调试：输出准备发送的数据
 
             if (imageFile) {
                 fileToDataUrl(imageFile)
@@ -355,26 +395,16 @@ const loadProfile = ()=>{
             } else {
                 sendUpdateRequest(updatedData);
             }
-        }
+        };
+        saveButton.addEventListener('click', saveProfileHandler);
 
-        function sendUpdateRequest(updatedData) {
-            if (Object.keys(updatedData).length === 0) {
-                modal.hide();
-                showErrorModal('No changes to save.');
-                return;
-            }
-            const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
-            const editButton = document.getElementById('btn-edit-profile');
-            
-            apiCall('user', 'PUT', updatedData)
-                .then(() => {
-                    modal.hide();
-                    showErrorModal('Profile updated successfully! Reloading profile...');
-                    editButton.focus();
-                    setTimeout(() => loadProfile(), 1000); // Refresh profile
-                })
-                .catch((error) => showErrorModal(error));
-        }
+        
+        //Bind save event outside the loop to avoid duplicates
+        // saveButton = document.getElementById('save-profile-changes');
+        // saveButton.removeEventListener('click', saveProfileHandler);
+        // saveButton.addEventListener('click', saveProfileHandler);
+
+
         // user who watch me
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = 'Users who watch me:';
@@ -431,8 +461,6 @@ const loadFeed = () => {
     }).catch((error) => showErrorModal(error));
 };
 
-
-
 for (const atag of document.querySelectorAll('a')) {
     if (atag.hasAttribute('internal-link')) {
         atag.addEventListener('click', () => {
@@ -442,8 +470,6 @@ for (const atag of document.querySelectorAll('a')) {
         });
     }
 }
-
-
 //When Page load
 if(localStorage.getItem('lurkforwork_token')){
     showPage('feed');
