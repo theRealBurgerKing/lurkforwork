@@ -197,9 +197,67 @@ const createJobElement = (job, index, jobsArray) => {
     commentsCountP.appendChild(document.createTextNode(commentsCount));
     jobContainer.appendChild(commentsCountP);
 
-    
+    // Comments
+    const commentsDiv = document.createElement('div');
+    commentsDiv.className = 'comments';
+    if (job.comments && job.comments.length > 0) {
+        const commentsList = document.createElement('ul');
+        for (const comment of job.comments) {
+            const commentItem = document.createElement('li');
+            const commentStrong = document.createElement('strong');
+            commentStrong.textContent = `${comment.userName}: `;
+            commentItem.appendChild(commentStrong);
+            commentItem.appendChild(document.createTextNode(comment.comment));
+            commentsList.appendChild(commentItem);
+        }
+        commentsDiv.appendChild(commentsList);
+    } else {
+        const noCommentsP = document.createElement('p');
+        noCommentsP.textContent = 'No comments yet.';
+        commentsDiv.appendChild(noCommentsP);
+    }
+    jobContainer.appendChild(commentsDiv);
 
-    
+    // Like button event listener
+    likeButton.addEventListener('click', () => {
+        ifLiked = !ifLiked;
+        apiCall('job/like', 'PUT', { id: job.id, turnon: ifLiked })
+            .then(() => {
+                likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
+                showErrorModal(`${ifLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
+            })
+            .catch((error) => showErrorModal('Error: ' + error));
+    });
+
+    // Show Likes button event listener
+    showLikesButton.addEventListener('click', () => {
+        const jobData = jobsArray[index];
+        const likes = jobData.likes || [];
+        if (likesListDiv.style.display === 'none') {
+            likesListDiv.innerHTML = '';
+            const likesHeader = document.createElement('strong');
+            likesHeader.textContent = 'Users who liked this job:';
+            likesListDiv.appendChild(likesHeader);
+            const likesList = document.createElement('ul');
+            if (likes.length === 0) {
+                const noLikesItem = document.createElement('li');
+                noLikesItem.textContent = 'No likes yet.';
+                likesList.appendChild(noLikesItem);
+            } else {
+                likes.forEach((like) => {
+                    const likeItem = document.createElement('li');
+                    likeItem.textContent = `${like.userName} (Email: ${like.userEmail})`;
+                    likesList.appendChild(likeItem);
+                });
+            }
+            likesListDiv.appendChild(likesList);
+            likesListDiv.style.display = 'block';
+            showLikesButton.textContent = 'Hide Likes';
+        } else {
+            likesListDiv.style.display = 'none';
+            showLikesButton.textContent = 'Show Likes';
+        }
+    });
 
     return jobContainer;
 };
