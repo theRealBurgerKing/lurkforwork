@@ -669,12 +669,15 @@ const loadFeed = () => {
 };
 // Post Job button event listener
 document.getElementById('post-job-btn').addEventListener('click', () => {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('post-job-modal'));
     const title = document.getElementById('job-title').value.trim();
     const startDate = document.getElementById('job-start-date').value.trim();
     const description = document.getElementById('job-description').value.trim();
     const imageFile = document.getElementById('job-image').files[0];
+    
     // Validate required fields
     if (!title || !startDate || !description) {
+        modal.hide();
         showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
         return;
     }
@@ -707,7 +710,6 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
     const postJob = () => {
         apiCall('job', 'POST', jobData)
             .then(() => {
-                const modal = bootstrap.Modal.getInstance(document.getElementById('post-job-modal'));
                 modal.hide();
                 removeModalBackdrop();
                 showErrorModal('Job posted successfully! Refreshing feed...');
@@ -752,6 +754,7 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
             modal.hide();
             removeModalBackdrop();
             showErrorModal('User watched successfully!');
+            reloadCurrentPage();
         })
         .catch(error => {
             showErrorModal('Error watching user: ' + error);
