@@ -317,24 +317,55 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     commentsDiv.className = 'comments';
     if (job.comments && job.comments.length > 0) {
         const commentsList = document.createElement('ul');
-        for (const comment of job.comments) {
-            const commentItem = document.createElement('li');
-            const commentStrong = document.createElement('strong');
-            const userLink = document.createElement('a');
-            userLink.href = '#';
-            userLink.dataset.userId = comment.userId;
-            getUserName(comment.userId).then(name => {
-                userLink.textContent = `${name}: `;
+        Promise.all(
+            job.comments.map(comment =>
+                getUserInfo(comment.userId).then(userInfo => ({
+                    userId: comment.userId,
+                    name: userInfo.name,
+                    image: userInfo.image,
+                    comment: comment.comment
+                }))
+            )
+        ).then(comments => {
+            comments.forEach(comment => {
+                const commentItem = document.createElement('li');
+                commentItem.style.display = 'flex';
+                commentItem.style.alignItems = 'center';
+    
+                // add avatar
+                if (comment.image) {
+                    const img = document.createElement('img');
+                    img.src = comment.image;
+                    img.alt = `${comment.name}'s profile picture`;
+                    img.className = 'rounded-circle little-profile-pic';
+                    commentItem.appendChild(img);
+                } else {
+                    // placeholder avatar
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
+                    placeholder.textContent = comment.name.charAt(0).toUpperCase();
+                    commentItem.appendChild(placeholder);
+                }
+    
+                // name: comments
+                const commentContent = document.createElement('span');
+                const userLink = document.createElement('a');
+                userLink.href = '#';
+                userLink.dataset.userId = comment.userId;
+                userLink.textContent = `${comment.name}`;
+                userLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage('other-profile', comment.userId);
+                });
+                commentContent.appendChild(userLink);
+                commentContent.appendChild(document.createTextNode(`: ${comment.comment}`));
+                commentItem.appendChild(commentContent);
+    
+                commentsList.appendChild(commentItem);
             });
-            userLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                showPage('other-profile', comment.userId);
-            });
-            commentStrong.appendChild(userLink);
-            commentItem.appendChild(commentStrong);
-            commentItem.appendChild(document.createTextNode(comment.comment));
-            commentsList.appendChild(commentItem);
-        }
+        }).catch(error => {
+            showErrorModal('Error loading comments: ' + error);
+        });
         commentsDiv.appendChild(commentsList);
     } else {
         const noCommentsP = document.createElement('p');
@@ -342,25 +373,6 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         commentsDiv.appendChild(noCommentsP);
     }
     jobContainer.appendChild(commentsDiv);
-    // Delete Button (only visible to the job creator)
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'btn btn-danger delete-job';
-    deleteButton.textContent = 'Delete Job';
-    deleteButton.dataset.jobId = job.id;
-    deleteButton.style.display = job.creatorId === myId ? 'inline-block' : 'none'; // Only show if the user is the creator
-    deleteButton.addEventListener('click', () => {
-        if (confirm('Are you sure you want to delete this job?')) {
-            apiCall('job', 'DELETE', { id: job.id })
-                .then(() => {
-                    showErrorModal('Job deleted successfully! Refreshing page...');
-                    reloadCurrentPage(targetUserId);
-                })
-                .catch((error) => {
-                    showErrorModal('Error deleting job: ' + error);
-                });
-        }
-    });
-    jobContainer.appendChild(deleteButton);
     
 
 

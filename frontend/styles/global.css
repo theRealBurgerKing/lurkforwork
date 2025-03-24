@@ -89,6 +89,7 @@ html, body {
     width: 200px;
     height: 200px;
     border: 2px solid #ddd;
+    object-fit: cover;
 }
 .delete-job {
     margin-top: 10px;
@@ -99,4 +100,34 @@ html, body {
     height: 40px;
     object-fit: cover;
     margin-right: 10px;
+}
+
+.placeholder-avatar {
+    background: linear-gradient(to right, #4b6cb7, #182848);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.main-profile-pic.placeholder-avatar {
+    width: 200px;
+    height: 200px;
+    font-size: 80px;
+}
+
+.little-profile-pic.placeholder-avatar {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.comments ul li {
+    margin-bottom: 10px;
+}
+
+.comments ul li span {
+    flex: 1;
 }
