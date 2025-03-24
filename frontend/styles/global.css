@@ -84,12 +84,19 @@ html, body {
     border: 2px solid #ddd;
 }
 
-#profile-content img.rounded-circle {
+
+.main-profile-pic {
     width: 200px;
     height: 200px;
     border: 2px solid #ddd;
 }
-
 .delete-job {
     margin-top: 10px;
+}
+
+.little-profile-pic {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    margin-right: 10px;
 }

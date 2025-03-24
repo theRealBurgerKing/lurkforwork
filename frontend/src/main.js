@@ -470,7 +470,7 @@ const loadProfile = ()=>{
             const img = document.createElement('img');
             img.src = data.image;
             img.alt = `${data.name}'s profile picture`;
-            img.className = 'rounded-circle';
+            img.className = 'rounded-circle main-profile-pic';
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
         }
@@ -498,7 +498,7 @@ const loadProfile = ()=>{
                 fileToDataUrl(file)
                     .then((dataUrl) => {
                         previewImg.src = dataUrl;
-                        previewImg.className = 'rounded-circle'; // 应用圆形样式
+                        previewImg.className = 'rounded-circle';
                         previewImg.style.objectFit = 'cover';
                         previewDiv.style.display = 'block';
                     })
@@ -542,16 +542,50 @@ const loadProfile = ()=>{
         };
         saveButton.addEventListener('click', saveProfileHandler);
 
-        // user who watch me
+        // Users who watch me
         const watchersHeader = document.createElement('h3');
-        watchersHeader.textContent = 'Users who watch me:';
+        watchersHeader.textContent = `Users who watch me (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
         profileContent.appendChild(watchersHeader);
+
         const watchersList = document.createElement('ul');
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
-            data.usersWhoWatchMeUserIds.forEach((userId) => {
-                const watcherItem = document.createElement('li');
-                watcherItem.textContent = `User ID: ${userId}`;
-                watchersList.appendChild(watcherItem);
+            Promise.all(
+                data.usersWhoWatchMeUserIds.map(userId =>
+                    apiCall(`user?userId=${userId}`, 'GET', {}).then(userData => ({
+                        userId,
+                        name: userData.name,
+                        image: userData.image
+                    }))
+                )
+            ).then(watchers => {
+                watchers.forEach(watcher => {
+                    const watcherItem = document.createElement('li');
+                    watcherItem.style.display = 'flex';
+                    watcherItem.style.alignItems = 'center';
+
+                    // add profile picture
+                    if (watcher.image) {
+                        const img = document.createElement('img');
+                        img.src = watcher.image;
+                        img.alt = `${watcher.name}'s profile picture`;
+                        img.className = 'rounded-circle little-profile-pic';
+                        watcherItem.appendChild(img);
+                    }
+
+                    // 添加用户名链接
+                    const watcherLink = document.createElement('a');
+                    watcherLink.href = '#';
+                    watcherLink.textContent = watcher.name;
+                    watcherLink.dataset.userId = watcher.userId;
+                    watcherLink.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        showPage('other-profile', watcher.userId);
+                    });
+                    watcherItem.appendChild(watcherLink);
+                    watchersList.appendChild(watcherItem);
+                });
+            }).catch(error => {
+                showErrorModal('Error loading watchers: ' + error);
             });
         } else {
             const noWatchers = document.createElement('li');
@@ -559,6 +593,7 @@ const loadProfile = ()=>{
             watchersList.appendChild(noWatchers);
         }
         profileContent.appendChild(watchersList);
+
 
         // Jobs
         const jobsHeader = document.createElement('h3');
@@ -568,11 +603,6 @@ const loadProfile = ()=>{
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
                 const jobElement = createJobElement(job, index, data.jobs);
-                // //remove like btn in myself profile
-                // const likeButtons = jobElement.querySelectorAll('.like-job');
-                // likeButtons.forEach(button => button.remove());
-
-
                 profileContent.appendChild(jobElement);
             });
         } else {
