@@ -449,7 +449,77 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
             const saveButton = document.getElementById('update-job-btn');
             const newSaveButton = saveButton.cloneNode(true);
             saveButton.parentNode.replaceChild(newSaveButton, saveButton);
-            
+            newSaveButton.addEventListener('click', () => {
+                const title = document.getElementById('update-job-title').value.trim();
+                const startDate = document.getElementById('update-job-start-date').value.trim();
+                const description = document.getElementById('update-job-description').value.trim();
+                const imageFile = document.getElementById('update-job-image').files[0];
+
+                // Validate required fields
+                if (!title || !startDate || !description) {
+                    showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
+                    return;
+                }
+
+                // Validate date format (DD/MM/YYYY)
+                const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                if (!datePattern.test(startDate)) {
+                    showErrorModal('Start Date must be in the format DD/MM/YYYY.');
+                    return;
+                }
+
+                // Parse and validate the date
+                const [day, month, year] = startDate.split('/').map(Number);
+                const parsedDate = new Date(year, month - 1, day);
+                if (
+                    parsedDate.getDate() !== day ||
+                    parsedDate.getMonth() + 1 !== month ||
+                    parsedDate.getFullYear() !== year
+                ) {
+                    showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
+                    return;
+                }
+
+                // Format the date to YYYY-MM-DD for the API
+                const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+                // Prepare the updated job data
+                const updatedJobData = {
+                    id: job.id,
+                    title,
+                    start: formattedDate,
+                    description,
+                };
+
+                // Handle image if provided
+                const updateJob = () => {
+                    apiCall('job', 'PUT', updatedJobData)
+                        .then(() => {
+                            updateJobModal.hide();
+                            removeModalBackdrop();
+                            showErrorModal('Job updated successfully! Refreshing page...');
+                            reloadCurrentPage(targetUserId);
+                        })
+                        .catch((error) => {
+                            showErrorModal('Error updating job: ' + error);
+                        });
+                };
+
+                if (imageFile) {
+                    fileToDataUrl(imageFile)
+                        .then((dataUrl) => {
+                            updatedJobData.image = dataUrl;
+                            updateJob();
+                        })
+                        .catch((error) => {
+                            showErrorModal('Error processing image: ' + error);
+                        });
+                } else {
+                    // If no new image is uploaded, keep the existing image
+                    updatedJobData.image = job.image || undefined;
+                    updateJob();
+                }
+            });
         });
         likesP.appendChild(updateButton);
     }
