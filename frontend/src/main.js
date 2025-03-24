@@ -457,6 +457,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
 
                 // Validate required fields
                 if (!title || !startDate || !description) {
+                    updateJobModal.hide();
                     showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
                     return;
                 }
@@ -464,6 +465,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                 // Validate date format (DD/MM/YYYY)
                 const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
                 if (!datePattern.test(startDate)) {
+                    updateJobModal.hide();
                     showErrorModal('Start Date must be in the format DD/MM/YYYY.');
                     return;
                 }
@@ -476,6 +478,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                     parsedDate.getMonth() + 1 !== month ||
                     parsedDate.getFullYear() !== year
                 ) {
+                    updateJobModal.hide();
                     showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
                     return;
                 }
@@ -501,6 +504,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                             reloadCurrentPage(targetUserId);
                         })
                         .catch((error) => {
+                            updateJobModal.hide();
                             showErrorModal('Error updating job: ' + error);
                         });
                 };
@@ -512,6 +516,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                             updateJob();
                         })
                         .catch((error) => {
+                            updateJobModal.hide();
                             showErrorModal('Error processing image: ' + error);
                         });
                 } else {
@@ -553,26 +558,10 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                 likesList.appendChild(noLikesItem);
             } else {
                 Promise.all(
-                    likes.map(like =>
-                        getUserInfo(like.userId).then(userInfo => ({
-                            userId: like.userId,
-                            userName: userInfo.name,
-                            userEmail: like.userEmail
-                        }))
-                    )
-                ).then(likeUsers => {
-                    likeUsers.forEach(likeUser => {
-                        const likeItem = document.createElement('li');
-                        const userLink = document.createElement('a');
-                        userLink.href = '#';
-                        userLink.textContent = `${likeUser.userName} (Email: ${likeUser.userEmail})`;
-                        userLink.dataset.userId = likeUser.userId;
-                        userLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            showPage('other-profile', likeUser.userId);
-                        });
-                        likeItem.appendChild(userLink);
-                        likesList.appendChild(likeItem);
+                    likes.map(like => createUserLinkWithAvatar(like.userId))
+                ).then(likeUserElements => {
+                    likeUserElements.forEach(likeUserElement => {
+                        likesList.appendChild(likeUserElement);
                     });
                 }).catch(error => {
                     showErrorModal('Error loading likes: ' + error);
