@@ -17,8 +17,8 @@ html, body {
     border: 1px solid #ccc;
     background-color: aquamarine;
     border-radius: 20px;
-    margin-left: 8vw;
-    margin-right: 8vw;
+    /* margin-left: 8vw;
+    margin-right: 8vw; */
 }
 .job-post img {
     max-width: 100%;

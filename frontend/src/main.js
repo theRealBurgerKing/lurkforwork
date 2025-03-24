@@ -608,33 +608,47 @@ const loadProfile = ()=>{
     }
     let profileContent = document.getElementById('profile-content');
     apiCall(`user?userId=${myId}`,'GET',{}).then((data)=>{
-        console.log(data);
         profileContent.innerHTML = '';
-        //name
-        const nameHeader = document.createElement('h2');
-        nameHeader.textContent = data.name;
-        profileContent.appendChild(nameHeader);
 
-        //email
-        const emailP = document.createElement('p');
-        emailP.textContent = `Email: ${data.email}`;
-        profileContent.appendChild(emailP);
+        // Create a container for avatar and text (name + email)
+        const profileHeader = document.createElement('div');
+        profileHeader.id = 'profile-header';
 
         // Profile picture
+        let avatarElement;
         if (data.image) {
-            const img = document.createElement('img');
-            img.src = data.image;
-            img.alt = `${data.name}'s profile picture`;
-            img.className = 'rounded-circle main-profile-pic';
-            img.style.maxWidth = '200px';
-            profileContent.appendChild(img);
+            avatarElement = document.createElement('img');
+            avatarElement.src = data.image;
+            avatarElement.alt = `${data.name}'s profile picture`;
+            avatarElement.className = 'rounded-circle main-profile-pic';
+            avatarElement.id = 'profile-avatar'; // Add ID for styling
         } else {
-            // no avatar, generate placeholder-avatar
-            const placeholder = document.createElement('div');
-            placeholder.className = 'rounded-circle main-profile-pic placeholder-avatar';
-            placeholder.textContent = data.name.charAt(0).toUpperCase(); //show initial
-            profileContent.appendChild(placeholder);
+            // No avatar, generate placeholder-avatar
+            avatarElement = document.createElement('div');
+            avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
+            avatarElement.textContent = data.name.charAt(0).toUpperCase(); // Show initial
+            avatarElement.id = 'profile-avatar'; // Add ID for styling
         }
+        profileHeader.appendChild(avatarElement);
+
+        // Create a container for name and email (vertical layout)
+        const textContainer = document.createElement('div');
+        textContainer.id = 'profile-text'; // Add ID for styling
+
+        // Name
+        const nameHeader = document.createElement('h2');
+        nameHeader.textContent = data.name;
+        nameHeader.id = 'profile-name'; // Add ID for styling
+        textContainer.appendChild(nameHeader);
+
+        // Email
+        const emailP = document.createElement('p');
+        emailP.textContent = `Email: ${data.email}`;
+        emailP.id = 'profile-email'; // Add ID for styling
+        textContainer.appendChild(emailP);
+
+        profileHeader.appendChild(textContainer);
+        profileContent.appendChild(profileHeader);
 
         // Populate the value of Modal
         document.getElementById('edit-name').value = data.name;
@@ -754,30 +768,47 @@ const loadOtherProfile = (userId) => {
     const profileContent = document.getElementById('other-profile-content');
     profileContent.innerHTML = '';
     apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
-        console.log(data);
+        // Create a container for avatar and text (name + email)
+        const profileHeader = document.createElement('div');
+        profileHeader.id = 'other-profile-header'; // Add ID for styling
+
+        // Profile picture
+        let avatarElement;
+        if (data.image) {
+            avatarElement = document.createElement('img');
+            avatarElement.src = data.image;
+            avatarElement.alt = `${data.name}'s profile picture`;
+            avatarElement.className = 'rounded-circle main-profile-pic';
+            avatarElement.id = 'other-profile-avatar'; // Add ID for styling
+        } else {
+            // No big avatar, generate placeholder-avatar
+            avatarElement = document.createElement('div');
+            avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
+            avatarElement.textContent = data.name.charAt(0).toUpperCase();
+            avatarElement.id = 'other-profile-avatar'; // Add ID for styling
+        }
+        profileHeader.appendChild(avatarElement);
+
+        // Create a container for name and email (vertical layout)
+        const textContainer = document.createElement('div');
+        textContainer.id = 'other-profile-text'; // Add ID for styling
+
         // Name
         const nameHeader = document.createElement('h2');
         nameHeader.textContent = data.name;
-        profileContent.appendChild(nameHeader);
+        nameHeader.id = 'other-profile-name'; // Add ID for styling
+        textContainer.appendChild(nameHeader);
+
         // Email
         const emailP = document.createElement('p');
         emailP.textContent = `Email: ${data.email}`;
-        profileContent.appendChild(emailP);
-        // Profile picture
-        if (data.image) {
-            const img = document.createElement('img');
-            img.src = data.image;
-            img.alt = `${data.name}'s profile picture`;
-            img.className = 'rounded-circle main-profile-pic';
-            img.style.maxWidth = '200px';
-            profileContent.appendChild(img);
-        } else {
-            // no big avatar, generate placeholder-avatar
-            const placeholder = document.createElement('div');
-            placeholder.className = 'rounded-circle main-profile-pic placeholder-avatar';
-            placeholder.textContent = data.name.charAt(0).toUpperCase();
-            profileContent.appendChild(placeholder);
-        }
+        emailP.id = 'other-profile-email'; // Add ID for styling
+        textContainer.appendChild(emailP);
+
+        profileHeader.appendChild(textContainer);
+        profileContent.appendChild(profileHeader);
+
+        
         // Watch/Unwatch Button
         const watchButton = document.createElement('button');
         watchButton.className = 'btn btn-primary';
