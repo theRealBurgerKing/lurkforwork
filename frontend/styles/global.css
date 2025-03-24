@@ -60,3 +60,19 @@ html, body {
 #btn-search:hover {
     background-color: #0056b3;
 }
+
+#btn-post-job {
+    margin-left: 10px;
+}
+
+#post-job-modal .modal-body {
+    padding: 20px;
+}
+
+#post-job-modal .form-label {
+    font-weight: bold;
+}
+
+#post-job-modal textarea {
+    resize: vertical;
+}

@@ -654,8 +654,82 @@ const loadFeed = () => {
             feedContent.appendChild(jobElement);
         });
     }).catch((error) => showErrorModal(error));
+    // Add event listener for Post New Job button
+    const postJobButton = document.getElementById('btn-post-job');
+    postJobButton.addEventListener('click', () => {
+        removeModalBackdrop();
+        const postJobModal = new bootstrap.Modal(document.getElementById('post-job-modal'));
+        // Reset form fields when opening the modal
+        document.getElementById('job-title').value = '';
+        document.getElementById('job-start-date').value = '';
+        document.getElementById('job-description').value = '';
+        document.getElementById('job-image').value = '';
+        postJobModal.show();
+    });
 };
-
+// Post Job button event listener
+document.getElementById('post-job-btn').addEventListener('click', () => {
+    const title = document.getElementById('job-title').value.trim();
+    const startDate = document.getElementById('job-start-date').value.trim();
+    const description = document.getElementById('job-description').value.trim();
+    const imageFile = document.getElementById('job-image').files[0];
+    // Validate required fields
+    if (!title || !startDate || !description) {
+        showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
+        return;
+    }
+    // Validate date format (DD/MM/YYYY)
+    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!datePattern.test(startDate)) {
+        showErrorModal('Start Date must be in the format DD/MM/YYYY.');
+        return;
+    }
+    // Parse and validate the date
+    const [day, month, year] = startDate.split('/').map(Number);
+    const parsedDate = new Date(year, month - 1, day);
+    if (
+        parsedDate.getDate() !== day ||
+        parsedDate.getMonth() + 1 !== month ||
+        parsedDate.getFullYear() !== year
+    ) {
+        showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
+        return;
+    }
+    // Format the date to YYYY-MM-DD for the API
+    const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    // Prepare the job data
+    const jobData = {
+        title,
+        start: formattedDate,
+        description,
+    };
+    // Handle image if provided
+    const postJob = () => {
+        apiCall('job', 'POST', jobData)
+            .then(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('post-job-modal'));
+                modal.hide();
+                removeModalBackdrop();
+                showErrorModal('Job posted successfully! Refreshing feed...');
+                loadFeed(); // Refresh the feed to show the new job
+            })
+            .catch((error) => {
+                showErrorModal('Error posting job: ' + error);
+            });
+    };
+    if (imageFile) {
+        fileToDataUrl(imageFile)
+            .then((dataUrl) => {
+                jobData.image = dataUrl;
+                postJob();
+            })
+            .catch((error) => {
+                showErrorModal('Error processing image: ' + error);
+            });
+    } else {
+        postJob();
+    }
+});
 
 // Search button event listener
 document.getElementById('btn-search').addEventListener('click', () => {
