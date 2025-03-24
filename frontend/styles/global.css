@@ -158,3 +158,93 @@ html, body {
 .update-job-btn:hover {
     background-color: #0056b3;
 }
+#page-login {
+    background-color: #0056b3;
+    width:88vw;
+    height:50vh;
+    margin-top: 8vh;
+    margin-left: 6vw;
+    margin-right: 6vw;
+    padding-top: 8vh;
+    padding-left: 6vw;
+    padding-right: 40vw;
+    border-radius: 30px;
+}
+#page-register {
+    background-color: #0056b3;
+    width:88vw;
+    height:50vh;
+    margin-top: 8vh;
+    margin-left: 6vw;
+    margin-right: 6vw;
+    padding-top: 8vh;
+    padding-left: 6vw;
+    padding-right: 40vw;
+    border-radius: 30px;
+}
+
+#page-feed{
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 10vh;
+}
+
+#page-profile{
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 10vh;
+}
+
+#page-other-profile{
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 10vh;
+}
+
+/* Styles for profile header in loadProfile */
+#profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#profile-avatar {
+    margin-right: 20px;
+}
+
+#profile-text {
+    display: flex;
+    flex-direction: column;
+}
+
+#profile-name {
+    margin: 0;
+}
+
+#profile-email {
+    margin: 5px 0 0 0;
+}
+
+/* Styles for profile header in loadOtherProfile */
+#other-profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#other-profile-avatar {
+    margin-right: 20px;
+}
+
+#other-profile-text {
+    display: flex;
+    flex-direction: column;
+}
+
+#other-profile-name {
+    margin: 0;
+}
+
+#other-profile-email {
+    margin: 5px 0 0 0;
+}
