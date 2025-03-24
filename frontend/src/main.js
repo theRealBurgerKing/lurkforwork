@@ -55,19 +55,25 @@ function removeModalBackdrop() {
     document.body.style.paddingRight = '';
 }
 
-const getUserName = async (userId) => {
-    // if userId in Cache, return it directly
+const getUserInfo = async (userId) => {
+    // If userId is in cache, directly return cached data
     if (userCache[userId]) {
         return userCache[userId];
     }
 
     try {
         const userData = await apiCall(`user?userId=${userId}`, 'GET', {});
-        userCache[userId] = userData.name; // add it to userCache
-        return userData.name;
+        userCache[userId] = {
+            name: userData.name,
+            image: userData.image
+        }; // cache the name and image of users
+        return userCache[userId];
     } catch (error) {
-        console.error(`Error fetching user name for userId ${userId}:`, error);
-        return `User ID: ${userId}`;
+        console.error(`Error fetching user info for userId ${userId}:`, error);
+        return {
+            name: `User ID: ${userId}`,
+            image: null
+        };
     }
 };
 //send request to backend
@@ -236,9 +242,9 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     creatorLink.href = '#';
     creatorLink.dataset.userId = job.creatorId;
 
-    // Asynchronously get the username and update the DOM
-    getUserName(job.creatorId).then(name => {
-        creatorLink.textContent = name;
+    // Asynchronously get the user info and update the DOM
+    getUserInfo(job.creatorId).then(userInfo => {
+        creatorLink.textContent = userInfo.name;
     });
 
     creatorLink.addEventListener('click', (e) => {
@@ -388,9 +394,9 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
             } else {
                 Promise.all(
                     likes.map(like =>
-                        getUserName(like.userId).then(name => ({
+                        getUserInfo(like.userId).then(userInfo => ({
                             userId: like.userId,
-                            userName: name,
+                            userName: userInfo.name,
                             userEmail: like.userEmail
                         }))
                     )
@@ -465,7 +471,7 @@ const loadProfile = ()=>{
         emailP.textContent = `Email: ${data.email}`;
         profileContent.appendChild(emailP);
 
-        //profile pic
+        // Profile picture
         if (data.image) {
             const img = document.createElement('img');
             img.src = data.image;
@@ -473,6 +479,12 @@ const loadProfile = ()=>{
             img.className = 'rounded-circle main-profile-pic';
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
+        } else {
+            // no avatar, generate placeholder-avatar
+            const placeholder = document.createElement('div');
+            placeholder.className = 'rounded-circle main-profile-pic placeholder-avatar';
+            placeholder.textContent = data.name.charAt(0).toUpperCase(); //show initial
+            profileContent.appendChild(placeholder);
         }
 
         // Populate the value of Modal
@@ -570,9 +582,15 @@ const loadProfile = ()=>{
                         img.alt = `${watcher.name}'s profile picture`;
                         img.className = 'rounded-circle little-profile-pic';
                         watcherItem.appendChild(img);
+                    } else {
+                        // no small avatar, generate placeholder-avatar
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
+                        placeholder.textContent = watcher.name.charAt(0).toUpperCase(); // show initial
+                        watcherItem.appendChild(placeholder);
                     }
 
-                    // 添加用户名链接
+                    // add link to username
                     const watcherLink = document.createElement('a');
                     watcherLink.href = '#';
                     watcherLink.textContent = watcher.name;
@@ -634,8 +652,15 @@ const loadOtherProfile = (userId) => {
             const img = document.createElement('img');
             img.src = data.image;
             img.alt = `${data.name}'s profile picture`;
+            img.className = 'rounded-circle main-profile-pic';
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
+        } else {
+            // no big avatar, generate placeholder-avatar
+            const placeholder = document.createElement('div');
+            placeholder.className = 'rounded-circle main-profile-pic placeholder-avatar';
+            placeholder.textContent = data.name.charAt(0).toUpperCase();
+            profileContent.appendChild(placeholder);
         }
         // Watch/Unwatch Button
         const watchButton = document.createElement('button');
@@ -667,12 +692,31 @@ const loadOtherProfile = (userId) => {
                 data.usersWhoWatchMeUserIds.map(userId =>
                     apiCall(`user?userId=${userId}`, 'GET', {}).then(userData => ({
                         userId,
-                        name: userData.name
+                        name: userData.name,
+                        image: userData.image
                     }))
                 )
             ).then(watchers => {
                 watchers.forEach(watcher => {
                     const watcherItem = document.createElement('li');
+                    watcherItem.style.display = 'flex';
+                    watcherItem.style.alignItems = 'center';
+
+                    // Add profile picture
+                    if (watcher.image) {
+                        const img = document.createElement('img');
+                        img.src = watcher.image;
+                        img.alt = `${watcher.name}'s profile picture`;
+                        img.className = 'rounded-circle little-profile-pic';
+                        watcherItem.appendChild(img);
+                    } else {
+                        // no little avatar, generate placeholder-avatar
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
+                        placeholder.textContent = watcher.name.charAt(0).toUpperCase();
+                        watcherItem.appendChild(placeholder);
+                    }
+
                     const watcherLink = document.createElement('a');
                     watcherLink.href = '#';
                     watcherLink.textContent = watcher.name;
