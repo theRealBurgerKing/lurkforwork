@@ -397,7 +397,62 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         });
         likesP.appendChild(deleteButton);
     }
+    // Update Button (only for the creator)
+    if (job.creatorId === myId) {
+        const updateButton = document.createElement('button');
+        updateButton.className = 'update-job-btn';
+        updateButton.textContent = 'Update';
+        updateButton.dataset.jobId = job.id;
+        updateButton.addEventListener('click', () => {
+            // Show the update job modal
+            removeModalBackdrop();
+            const updateJobModal = new bootstrap.Modal(document.getElementById('update-job-modal'));
+            
+            // Pre-fill the form with current job data
+            document.getElementById('update-job-title').value = job.title;
+            document.getElementById('update-job-start-date').value = job.start.split('T')[0].split('-').reverse().join('/');
+            document.getElementById('update-job-description').value = job.description;
+            document.getElementById('update-job-image').value = ''; // Clear file input
+            const previewDiv = document.getElementById('update-job-image-preview');
+            const previewImg = document.getElementById('update-preview-img');
+            if (job.image) {
+                previewImg.src = job.image;
+                previewDiv.style.display = 'block';
+            } else {
+                previewDiv.style.display = 'none';
+            }
 
+            // Add event listener for image preview
+            const imageInput = document.getElementById('update-job-image');
+            imageInput.onchange = () => {
+                const file = imageInput.files[0];
+                if (file) {
+                    fileToDataUrl(file)
+                        .then((dataUrl) => {
+                            previewImg.src = dataUrl;
+                            previewDiv.style.display = 'block';
+                        })
+                        .catch((error) => {
+                            showErrorModal('Error previewing image: ' + error);
+                            previewDiv.style.display = 'none';
+                        });
+                } else {
+                    previewImg.src = job.image || '';
+                    previewDiv.style.display = job.image ? 'block' : 'none';
+                }
+            };
+
+            // Show the modal
+            updateJobModal.show();
+
+            // Add event listener for the Save button (one-time listener to avoid duplicates)
+            const saveButton = document.getElementById('update-job-btn');
+            const newSaveButton = saveButton.cloneNode(true);
+            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+            
+        });
+        likesP.appendChild(updateButton);
+    }
 
     // Like button event listener
     likeButton.addEventListener('click', () => {

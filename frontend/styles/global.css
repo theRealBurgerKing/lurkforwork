@@ -145,3 +145,16 @@ html, body {
     flex: 1;
 }
 
+.update-job-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.update-job-btn:hover {
+    background-color: #0056b3;
+}
