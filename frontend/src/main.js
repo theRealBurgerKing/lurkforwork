@@ -808,9 +808,24 @@ const loadOtherProfile = (userId) => {
         profileHeader.appendChild(textContainer);
         profileContent.appendChild(profileHeader);
 
-        
+        // Create a container for "Users who watch this user" section
+        const watchersSection = document.createElement('div');
+        watchersSection.id = 'other-profile-watchers-section'; // Add ID for styling
+
+        // Create a container for the header and button (horizontal layout)
+        const watchersHeaderContainer = document.createElement('div');
+        watchersHeaderContainer.id = 'other-profile-watchers-header'; // Add ID for styling
+
+        // Users who watch this user (header)
+        const watchersHeader = document.createElement('h3');
+        watchersHeader.textContent = `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
+        watchersHeaderContainer.appendChild(watchersHeader);
+
+
+
         // Watch/Unwatch Button
         const watchButton = document.createElement('button');
+        watchButton.id = 'other-profile-watch-btn'; // Add ID for styling
         watchButton.className = 'btn btn-primary';
         const isWatching = data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.includes(myId);
         watchButton.textContent = isWatching ? 'Unwatch' : 'Watch';
@@ -825,14 +840,11 @@ const loadOtherProfile = (userId) => {
                     showErrorModal('Error: ' + error);
                 });
         });
-        profileContent.appendChild(watchButton);
+        watchersHeaderContainer.appendChild(watchButton);
 
+        watchersSection.appendChild(watchersHeaderContainer);
 
-        // Users who watch this user
-        const watchersHeader = document.createElement('h3');
-        watchersHeader.textContent = `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
-        profileContent.appendChild(watchersHeader);
-
+        // Watchers list
         const watchersList = document.createElement('ul');
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
             Promise.all(
@@ -851,7 +863,8 @@ const loadOtherProfile = (userId) => {
             noWatchers.textContent = 'No users are watching this user.';
             watchersList.appendChild(noWatchers);
         }
-        profileContent.appendChild(watchersList);
+        watchersSection.appendChild(watchersList);
+        profileContent.appendChild(watchersSection);
 
         // Jobs
         const jobsHeader = document.createElement('h3');

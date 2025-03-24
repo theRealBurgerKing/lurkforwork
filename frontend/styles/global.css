@@ -14,11 +14,11 @@ html, body {
 .job-post {
     margin: 20px 0;
     padding: 10px;
-    border: 1px solid #ccc;
+    /* border: 1px solid #ccc; */
     background-color: aquamarine;
     border-radius: 20px;
-    /* margin-left: 8vw;
-    margin-right: 8vw; */
+    margin-left: 3vw;
+    margin-right: 3vw;
 }
 .job-post img {
     max-width: 100%;
@@ -206,6 +206,13 @@ html, body {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    background-color: papayawhip;
+    border-radius: 20px;
+    margin-top: 3vh;
+    padding-left: 3vw;
+    padding-top: 3vh;
+    padding-bottom: 3vh;
+
 }
 
 #profile-avatar {
@@ -230,6 +237,12 @@ html, body {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    background-color: papayawhip;
+    border-radius: 20px;
+    margin-top: 3vh;
+    padding-left: 3vw;
+    padding-top: 3vh;
+    padding-bottom: 3vh;
 }
 
 #other-profile-avatar {
@@ -247,4 +260,29 @@ html, body {
 
 #other-profile-email {
     margin: 5px 0 0 0;
+}
+
+
+/* Styles for "Users who watch this user" section in loadOtherProfile */
+#other-profile-watchers-section {
+    background-color: #f0f8ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+#other-profile-watchers-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#other-profile-watchers-header h3 {
+    margin: 0;
+    margin-right: 15px;
+}
+
+#other-profile-watch-btn {
+    padding: 5px 10px;
+    font-size: 14px;
 }
