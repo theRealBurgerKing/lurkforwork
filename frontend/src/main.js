@@ -717,11 +717,16 @@ const loadProfile = ()=>{
         };
         saveButton.addEventListener('click', saveProfileHandler);
 
-        // Users who watch me
+        // Create a container for "Users who watch me" section
+        const watchersSection = document.createElement('div');
+        watchersSection.id = 'profile-watchers-section'; // Add ID for styling
+
+        // Users who watch me (header)
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = `Users who watch me (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
-        profileContent.appendChild(watchersHeader);
+        watchersSection.appendChild(watchersHeader);
 
+        // Watchers list
         const watchersList = document.createElement('ul');
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
             Promise.all(
@@ -740,7 +745,8 @@ const loadProfile = ()=>{
             noWatchers.textContent = 'No users are watching you.';
             watchersList.appendChild(noWatchers);
         }
-        profileContent.appendChild(watchersList);
+        watchersSection.appendChild(watchersList);
+        profileContent.appendChild(watchersSection);
 
 
         // Jobs

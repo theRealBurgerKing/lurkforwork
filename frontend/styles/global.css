@@ -262,6 +262,19 @@ html, body {
     margin: 5px 0 0 0;
 }
 
+/* Styles for "Users who watch me" section in loadProfile */
+#profile-watchers-section {
+    background-color: #f0f8ff; /* Light blue background color, same as other-profile */
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+#profile-watchers-section h3 {
+    margin: 0;
+    margin-bottom: 10px; /* Space between header and list */
+}
+
 
 /* Styles for "Users who watch this user" section in loadOtherProfile */
 #other-profile-watchers-section {
