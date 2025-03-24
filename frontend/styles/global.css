@@ -76,3 +76,16 @@ html, body {
 #post-job-modal textarea {
     resize: vertical;
 }
+
+
+#edit-image-preview img {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #ddd;
+}
+
+#profile-content img.rounded-circle {
+    width: 200px;
+    height: 200px;
+    border: 2px solid #ddd;
+}

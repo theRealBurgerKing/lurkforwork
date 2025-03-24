@@ -450,6 +450,7 @@ const loadProfile = ()=>{
             const img = document.createElement('img');
             img.src = data.image;
             img.alt = `${data.name}'s profile picture`;
+            img.className = 'rounded-circle';
             img.style.maxWidth = '200px';
             profileContent.appendChild(img);
         }
@@ -466,6 +467,30 @@ const loadProfile = ()=>{
             const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
             modal.show();
         });
+        // Add event listener for image preview
+        const imageInput = document.getElementById('edit-image');
+        const previewDiv = document.getElementById('edit-image-preview');
+        const previewImg = document.getElementById('preview-img');
+
+        imageInput.addEventListener('change', () => {
+            const file = imageInput.files[0];
+            if (file) {
+                fileToDataUrl(file)
+                    .then((dataUrl) => {
+                        previewImg.src = dataUrl;
+                        previewImg.className = 'rounded-circle'; // 应用圆形样式
+                        previewImg.style.objectFit = 'cover';
+                        previewDiv.style.display = 'block';
+                    })
+                    .catch((error) => {
+                        showErrorModal('Error previewing image: ' + error);
+                        previewDiv.style.display = 'none';
+                    });
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        });
+        
 
         // remove old EventListener
         const saveButton = document.getElementById('save-profile-changes');
@@ -684,6 +709,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
     // Validate date format (DD/MM/YYYY)
     const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
     if (!datePattern.test(startDate)) {
+        modal.hide();
         showErrorModal('Start Date must be in the format DD/MM/YYYY.');
         return;
     }
@@ -695,6 +721,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
         parsedDate.getMonth() + 1 !== month ||
         parsedDate.getFullYear() !== year
     ) {
+        modal.hide();
         showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
         return;
     }
