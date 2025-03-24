@@ -32,6 +32,57 @@ const reloadCurrentPage = (targetUserId = null) => {
     }
 };
 
+//Generate a link element with an avatar and username
+const createUserLinkWithAvatar = async (userId, additionalText = '') => {
+    const listItem = document.createElement('li');
+    listItem.style.display = 'flex';
+    listItem.style.alignItems = 'center';
+
+    try {
+        // gain userinfo
+        const userInfo = await getUserInfo(userId);
+
+        // add avatar
+        if (userInfo.image) {
+            const img = document.createElement('img');
+            img.src = userInfo.image;
+            img.alt = `${userInfo.name}'s profile picture`;
+            img.className = 'rounded-circle little-profile-pic';
+            listItem.appendChild(img);
+        } else {
+            // no avatar: generate placeholder box
+            const placeholder = document.createElement('div');
+            placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
+            placeholder.textContent = userInfo.name.charAt(0).toUpperCase();
+            listItem.appendChild(placeholder);
+        }
+
+        // add name and hyperlink
+        const contentSpan = document.createElement('span');
+        const userLink = document.createElement('a');
+        userLink.href = '#';
+        userLink.dataset.userId = userId;
+        userLink.textContent = userInfo.name;
+        userLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage('other-profile', userId);
+        });
+        contentSpan.appendChild(userLink);
+
+        // append additional text behind (for comments)
+        if (additionalText) {
+            contentSpan.appendChild(document.createTextNode(`: ${additionalText}`));
+        }
+
+        listItem.appendChild(contentSpan);
+        return listItem;
+    } catch (error) {
+        showErrorModal(`Error loading user info for userId ${userId}: ${error}`);
+        listItem.textContent = `User ID: ${userId}${additionalText ? `: ${additionalText}` : ''}`;
+        return listItem;
+    }
+};
+
 
 //Error popup
 const showErrorModal = (message) => {
@@ -238,21 +289,12 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     const postedByP = document.createElement('p');
     const postedByStrong = document.createElement('strong');
     postedByStrong.textContent = 'Posted by: ';
-    const creatorLink = document.createElement('a');
-    creatorLink.href = '#';
-    creatorLink.dataset.userId = job.creatorId;
-
-    // Asynchronously get the user info and update the DOM
-    getUserInfo(job.creatorId).then(userInfo => {
-        creatorLink.textContent = userInfo.name;
-    });
-
-    creatorLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        showPage('other-profile', job.creatorId);
-    });
     postedByP.appendChild(postedByStrong);
-    postedByP.appendChild(creatorLink);
+    createUserLinkWithAvatar(job.creatorId).then(userElement => {
+        postedByP.appendChild(userElement);
+    }).catch(error => {
+        showErrorModal(`Error loading creator: ${error}`);
+    });
     jobContainer.appendChild(postedByP);
 
     // Posted time
@@ -319,52 +361,14 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         const commentsList = document.createElement('ul');
         Promise.all(
             job.comments.map(comment =>
-                getUserInfo(comment.userId).then(userInfo => ({
-                    userId: comment.userId,
-                    name: userInfo.name,
-                    image: userInfo.image,
-                    comment: comment.comment
-                }))
+                createUserLinkWithAvatar(comment.userId, comment.comment)
             )
-        ).then(comments => {
-            comments.forEach(comment => {
-                const commentItem = document.createElement('li');
-                commentItem.style.display = 'flex';
-                commentItem.style.alignItems = 'center';
-    
-                // add avatar
-                if (comment.image) {
-                    const img = document.createElement('img');
-                    img.src = comment.image;
-                    img.alt = `${comment.name}'s profile picture`;
-                    img.className = 'rounded-circle little-profile-pic';
-                    commentItem.appendChild(img);
-                } else {
-                    // placeholder avatar
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
-                    placeholder.textContent = comment.name.charAt(0).toUpperCase();
-                    commentItem.appendChild(placeholder);
-                }
-    
-                // name: comments
-                const commentContent = document.createElement('span');
-                const userLink = document.createElement('a');
-                userLink.href = '#';
-                userLink.dataset.userId = comment.userId;
-                userLink.textContent = `${comment.name}`;
-                userLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage('other-profile', comment.userId);
-                });
-                commentContent.appendChild(userLink);
-                commentContent.appendChild(document.createTextNode(`: ${comment.comment}`));
-                commentItem.appendChild(commentContent);
-    
-                commentsList.appendChild(commentItem);
+        ).then(commentElements => {
+            commentElements.forEach(commentElement => {
+                commentsList.appendChild(commentElement);
             });
         }).catch(error => {
-            showErrorModal('Error loading comments: ' + error);
+            showErrorModal(`Error loading comments: ${error}`);
         });
         commentsDiv.appendChild(commentsList);
     } else {
@@ -575,44 +579,11 @@ const loadProfile = ()=>{
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
             Promise.all(
                 data.usersWhoWatchMeUserIds.map(userId =>
-                    apiCall(`user?userId=${userId}`, 'GET', {}).then(userData => ({
-                        userId,
-                        name: userData.name,
-                        image: userData.image
-                    }))
+                    createUserLinkWithAvatar(userId)
                 )
-            ).then(watchers => {
-                watchers.forEach(watcher => {
-                    const watcherItem = document.createElement('li');
-                    watcherItem.style.display = 'flex';
-                    watcherItem.style.alignItems = 'center';
-
-                    // add profile picture
-                    if (watcher.image) {
-                        const img = document.createElement('img');
-                        img.src = watcher.image;
-                        img.alt = `${watcher.name}'s profile picture`;
-                        img.className = 'rounded-circle little-profile-pic';
-                        watcherItem.appendChild(img);
-                    } else {
-                        // no small avatar, generate placeholder-avatar
-                        const placeholder = document.createElement('div');
-                        placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
-                        placeholder.textContent = watcher.name.charAt(0).toUpperCase(); // show initial
-                        watcherItem.appendChild(placeholder);
-                    }
-
-                    // add link to username
-                    const watcherLink = document.createElement('a');
-                    watcherLink.href = '#';
-                    watcherLink.textContent = watcher.name;
-                    watcherLink.dataset.userId = watcher.userId;
-                    watcherLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showPage('other-profile', watcher.userId);
-                    });
-                    watcherItem.appendChild(watcherLink);
-                    watchersList.appendChild(watcherItem);
+            ).then(watcherElements => {
+                watcherElements.forEach(watcherElement => {
+                    watchersList.appendChild(watcherElement);
                 });
             }).catch(error => {
                 showErrorModal('Error loading watchers: ' + error);
@@ -702,43 +673,11 @@ const loadOtherProfile = (userId) => {
         if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
             Promise.all(
                 data.usersWhoWatchMeUserIds.map(userId =>
-                    apiCall(`user?userId=${userId}`, 'GET', {}).then(userData => ({
-                        userId,
-                        name: userData.name,
-                        image: userData.image
-                    }))
+                    createUserLinkWithAvatar(userId)
                 )
-            ).then(watchers => {
-                watchers.forEach(watcher => {
-                    const watcherItem = document.createElement('li');
-                    watcherItem.style.display = 'flex';
-                    watcherItem.style.alignItems = 'center';
-
-                    // Add profile picture
-                    if (watcher.image) {
-                        const img = document.createElement('img');
-                        img.src = watcher.image;
-                        img.alt = `${watcher.name}'s profile picture`;
-                        img.className = 'rounded-circle little-profile-pic';
-                        watcherItem.appendChild(img);
-                    } else {
-                        // no little avatar, generate placeholder-avatar
-                        const placeholder = document.createElement('div');
-                        placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
-                        placeholder.textContent = watcher.name.charAt(0).toUpperCase();
-                        watcherItem.appendChild(placeholder);
-                    }
-
-                    const watcherLink = document.createElement('a');
-                    watcherLink.href = '#';
-                    watcherLink.textContent = watcher.name;
-                    watcherLink.dataset.userId = watcher.userId;
-                    watcherLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showPage('other-profile', watcher.userId);
-                    });
-                    watcherItem.appendChild(watcherLink);
-                    watchersList.appendChild(watcherItem);
+            ).then(watcherElements => {
+                watcherElements.forEach(watcherElement => {
+                    watchersList.appendChild(watcherElement);
                 });
             }).catch(error => {
                 showErrorModal('Error loading watchers: ' + error);
