@@ -499,6 +499,50 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         });
         likesP.appendChild(updateButton);
     }
+
+    // Comment Button
+    const commentButton = document.createElement('button');
+    commentButton.className = 'comment-job-btn';
+    commentButton.textContent = 'Comment';
+    commentButton.dataset.jobId = job.id;
+    commentButton.addEventListener('click', () => {
+        removeModalBackdrop();
+        const commentModal = new bootstrap.Modal(document.getElementById('comment-modal'));
+        const commentTextArea = document.getElementById('comment-text');
+        commentTextArea.value = '';
+        commentModal.show();
+
+        const submitCommentButton = document.getElementById('submit-comment-btn');
+        const newSubmitButton = submitCommentButton.cloneNode(true);
+        submitCommentButton.parentNode.replaceChild(newSubmitButton, submitCommentButton);
+        newSubmitButton.addEventListener('click', () => {
+            const commentText = commentTextArea.value.trim();
+            if (!commentText) {
+                commentModal.hide();
+                showErrorModal('Please enter a comment.');
+                return;
+            }
+
+            const commentData = {
+                id: job.id,
+                comment: commentText
+            };
+
+            apiCall('job/comment', 'POST', commentData)
+                .then(() => {
+                    commentModal.hide();
+                    removeModalBackdrop();
+                    showErrorModal('Comment posted successfully! Refreshing page...');
+                    reloadCurrentPage(targetUserId);
+                })
+                .catch(error => {
+                    commentModal.hide();
+                    showErrorModal('Error posting comment: ' + error);
+                });
+        });
+    });
+    likesP.appendChild(commentButton);
+
     jobContainer.appendChild(likesP);
     // Likes list (hidden by default)
     const likesListDiv = document.createElement('div');

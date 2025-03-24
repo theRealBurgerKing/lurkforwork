@@ -299,3 +299,32 @@ html, body {
     padding: 5px 10px;
     font-size: 14px;
 }
+
+
+/* Style for the Comment button */
+.comment-job-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.comment-job-btn:hover {
+    background-color: #218838;
+}
+
+/* Style for the Comment modal */
+#comment-modal .modal-body {
+    padding: 20px;
+}
+
+#comment-modal .form-label {
+    font-weight: bold;
+}
+
+#comment-modal textarea {
+    resize: vertical;
+}
