@@ -270,18 +270,8 @@ const showPage = (pageName,targetUserId=null)=>{
 const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     const jobContainer = document.createElement('div');
     jobContainer.className = 'job-post';
-
-    // Image
-    if (job.image){
-        const img = document.createElement('img');
-        img.src = job.image;
-        img.alt = job.title;
-        img.style.maxWidth = '100%';
-        jobContainer.appendChild(img);
-    }
-
     // Title
-    const title = document.createElement('h3');
+    const title = document.createElement('h1');
     title.textContent = job.title;
     jobContainer.appendChild(title);
 
@@ -296,6 +286,15 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         showErrorModal(`Error loading creator: ${error}`);
     });
     jobContainer.appendChild(postedByP);
+
+    // Image
+    if (job.image){
+        const img = document.createElement('img');
+        img.src = job.image;
+        img.alt = job.title;
+        img.style.maxWidth = '100%';
+        jobContainer.appendChild(img);
+    }
 
     // Posted time
     const postedTimeP = document.createElement('p');
@@ -342,7 +341,12 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
 
     // Description
     const descriptionP = document.createElement('p');
-    descriptionP.textContent = job.description;
+    const descriptionStrong = document.createElement('strong');
+    descriptionStrong.textContent = 'Description: ';
+    const mydescription = document.createElement('p');
+    mydescription.textContent = job.description;
+    descriptionP.appendChild(descriptionStrong);
+    descriptionP.appendChild(mydescription);
     jobContainer.appendChild(descriptionP);
 
     
