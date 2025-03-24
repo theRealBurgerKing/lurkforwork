@@ -274,19 +274,17 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     const title = document.createElement('h1');
     title.textContent = job.title;
     jobContainer.appendChild(title);
-
     // Posted by
     const postedByP = document.createElement('p');
     const postedByStrong = document.createElement('strong');
     postedByStrong.textContent = 'Posted by: ';
     postedByP.appendChild(postedByStrong);
     createUserLinkWithAvatar(job.creatorId).then(userElement => {
-        postedByP.appendChild(userElement);
-    }).catch(error => {
-        showErrorModal(`Error loading creator: ${error}`);
-    });
+            postedByP.appendChild(userElement);
+        }).catch(error => {
+            showErrorModal(`Error loading creator: ${error}`);
+        });
     jobContainer.appendChild(postedByP);
-
     // Image
     if (job.image){
         const img = document.createElement('img');
@@ -295,7 +293,6 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         img.style.maxWidth = '100%';
         jobContainer.appendChild(img);
     }
-
     // Posted time
     const postedTimeP = document.createElement('p');
     const postedTimeStrong = document.createElement('strong');
@@ -303,7 +300,6 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     postedTimeP.appendChild(postedTimeStrong);
     postedTimeP.appendChild(document.createTextNode(formatTimeAgo(job.createdAt)));
     jobContainer.appendChild(postedTimeP);
-
     // Start Date
     const startDateP = document.createElement('p');
     const startDateStrong = document.createElement('strong');
@@ -311,242 +307,37 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     startDateP.appendChild(startDateStrong);
     startDateP.appendChild(document.createTextNode(job.start.split('T')[0].split('-').reverse().join('/')));
     jobContainer.appendChild(startDateP);
-
     // Likes
     const likesCount = job.likes ? job.likes.length : 0;
     const likesP = document.createElement('p');
     const likesStrong = document.createElement('strong');
     likesStrong.textContent = 'Likes: ';
+    likesP.appendChild(likesStrong);
+    // Like Button
     const likeButton = document.createElement('button');
     likeButton.className = 'like-job';
     likeButton.dataset.jobId = job.id;
     likeButton.dataset.index = index;
     let ifLiked = job.likes && job.likes.some(like => like.userId === myId);
     likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
+    likeButton.addEventListener('click', () => {
+        const newIfLiked = !ifLiked;
+        apiCall('job/like', 'PUT', { id: job.id, turnon: newIfLiked })
+            .then(() => {
+                likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
+                showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
+                reloadCurrentPage(targetUserId);
+            })
+            .catch(error => showErrorModal('Error: ' + error));
+    });
+    likesP.appendChild(likeButton);
+    // Likes Count Text
+    likesP.appendChild(document.createTextNode(` ${likesCount}`));
+    // Show Likes Button
     const showLikesButton = document.createElement('button');
     showLikesButton.textContent = 'Show Likes';
     showLikesButton.className = 'show-likes-btn';
     showLikesButton.dataset.index = index;
-    likesP.appendChild(likesStrong);
-    likesP.appendChild(likeButton);
-    likesP.appendChild(document.createTextNode(` ${likesCount}`));
-    likesP.appendChild(showLikesButton);
-    jobContainer.appendChild(likesP);
-
-    // Likes list (hidden by default)
-    const likesListDiv = document.createElement('div');
-    likesListDiv.className = 'likes-list';
-    likesListDiv.style.display = 'none';
-    jobContainer.appendChild(likesListDiv);
-
-    // Description
-    const descriptionP = document.createElement('p');
-    const descriptionStrong = document.createElement('strong');
-    descriptionStrong.textContent = 'Description: ';
-    const mydescription = document.createElement('p');
-    mydescription.textContent = job.description;
-    descriptionP.appendChild(descriptionStrong);
-    descriptionP.appendChild(mydescription);
-    jobContainer.appendChild(descriptionP);
-
-    
-    // Comments count
-    const commentsCount = job.comments ? job.comments.length : 0;
-    const commentsCountP = document.createElement('p');
-    const commentsCountStrong = document.createElement('strong');
-    commentsCountStrong.textContent = 'Comments: ';
-    commentsCountP.appendChild(commentsCountStrong);
-    commentsCountP.appendChild(document.createTextNode(commentsCount));
-    jobContainer.appendChild(commentsCountP);
-
-    const commentsDiv = document.createElement('div');
-    commentsDiv.className = 'comments';
-    if (job.comments && job.comments.length > 0) {
-        const commentsList = document.createElement('ul');
-        Promise.all(
-            job.comments.map(comment =>
-                createUserLinkWithAvatar(comment.userId, comment.comment)
-            )
-        ).then(commentElements => {
-            commentElements.forEach(commentElement => {
-                commentsList.appendChild(commentElement);
-            });
-        }).catch(error => {
-            showErrorModal(`Error loading comments: ${error}`);
-        });
-        commentsDiv.appendChild(commentsList);
-    } else {
-        const noCommentsP = document.createElement('p');
-        noCommentsP.textContent = 'No comments yet.';
-        commentsDiv.appendChild(noCommentsP);
-    }
-    jobContainer.appendChild(commentsDiv);
-    // Delete Button (only for the creator)
-    if (job.creatorId === myId) {
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'delete-job-btn';
-        deleteButton.textContent = 'Delete';
-        deleteButton.dataset.jobId = job.id;
-        deleteButton.addEventListener('click', () => {
-            if (confirm('Are you sure you want to delete this job?')) {
-                apiCall('job', 'DELETE', { id: job.id })
-                    .then(() => {
-                        showErrorModal('Job deleted successfully! Refreshing profile...');
-                        reloadCurrentPage(targetUserId);
-                    })
-                    .catch(error => {
-                        showErrorModal('Error deleting job: ' + error);
-                    });
-            }
-        });
-        likesP.appendChild(deleteButton);
-    }
-    // Update Button (only for the creator)
-    if (job.creatorId === myId) {
-        const updateButton = document.createElement('button');
-        updateButton.className = 'update-job-btn';
-        updateButton.textContent = 'Update';
-        updateButton.dataset.jobId = job.id;
-        updateButton.addEventListener('click', () => {
-            // Show the update job modal
-            removeModalBackdrop();
-            const updateJobModal = new bootstrap.Modal(document.getElementById('update-job-modal'));
-            
-            // Pre-fill the form with current job data
-            document.getElementById('update-job-title').value = job.title;
-            document.getElementById('update-job-start-date').value = job.start.split('T')[0].split('-').reverse().join('/');
-            document.getElementById('update-job-description').value = job.description;
-            document.getElementById('update-job-image').value = ''; // Clear file input
-            const previewDiv = document.getElementById('update-job-image-preview');
-            const previewImg = document.getElementById('update-preview-img');
-            if (job.image) {
-                previewImg.src = job.image;
-                previewDiv.style.display = 'block';
-            } else {
-                previewDiv.style.display = 'none';
-            }
-
-            // Add event listener for image preview
-            const imageInput = document.getElementById('update-job-image');
-            imageInput.onchange = () => {
-                const file = imageInput.files[0];
-                if (file) {
-                    fileToDataUrl(file)
-                        .then((dataUrl) => {
-                            previewImg.src = dataUrl;
-                            previewDiv.style.display = 'block';
-                        })
-                        .catch((error) => {
-                            showErrorModal('Error previewing image: ' + error);
-                            previewDiv.style.display = 'none';
-                        });
-                } else {
-                    previewImg.src = job.image || '';
-                    previewDiv.style.display = job.image ? 'block' : 'none';
-                }
-            };
-
-            // Show the modal
-            updateJobModal.show();
-
-            // Add event listener for the Save button (one-time listener to avoid duplicates)
-            const saveButton = document.getElementById('update-job-btn');
-            const newSaveButton = saveButton.cloneNode(true);
-            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
-            newSaveButton.addEventListener('click', () => {
-                const title = document.getElementById('update-job-title').value.trim();
-                const startDate = document.getElementById('update-job-start-date').value.trim();
-                const description = document.getElementById('update-job-description').value.trim();
-                const imageFile = document.getElementById('update-job-image').files[0];
-
-                // Validate required fields
-                if (!title || !startDate || !description) {
-                    updateJobModal.hide();
-                    showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
-                    return;
-                }
-
-                // Validate date format (DD/MM/YYYY)
-                const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-                if (!datePattern.test(startDate)) {
-                    updateJobModal.hide();
-                    showErrorModal('Start Date must be in the format DD/MM/YYYY.');
-                    return;
-                }
-
-                // Parse and validate the date
-                const [day, month, year] = startDate.split('/').map(Number);
-                const parsedDate = new Date(year, month - 1, day);
-                if (
-                    parsedDate.getDate() !== day ||
-                    parsedDate.getMonth() + 1 !== month ||
-                    parsedDate.getFullYear() !== year
-                ) {
-                    updateJobModal.hide();
-                    showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
-                    return;
-                }
-
-                // Format the date to YYYY-MM-DD for the API
-                const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-
-                // Prepare the updated job data
-                const updatedJobData = {
-                    id: job.id,
-                    title,
-                    start: formattedDate,
-                    description,
-                };
-
-                // Handle image if provided
-                const updateJob = () => {
-                    apiCall('job', 'PUT', updatedJobData)
-                        .then(() => {
-                            updateJobModal.hide();
-                            removeModalBackdrop();
-                            showErrorModal('Job updated successfully! Refreshing page...');
-                            reloadCurrentPage(targetUserId);
-                        })
-                        .catch((error) => {
-                            updateJobModal.hide();
-                            showErrorModal('Error updating job: ' + error);
-                        });
-                };
-
-                if (imageFile) {
-                    fileToDataUrl(imageFile)
-                        .then((dataUrl) => {
-                            updatedJobData.image = dataUrl;
-                            updateJob();
-                        })
-                        .catch((error) => {
-                            updateJobModal.hide();
-                            showErrorModal('Error processing image: ' + error);
-                        });
-                } else {
-                    // If no new image is uploaded, keep the existing image
-                    updatedJobData.image = job.image || undefined;
-                    updateJob();
-                }
-            });
-        });
-        likesP.appendChild(updateButton);
-    }
-
-    // Like button event listener
-    likeButton.addEventListener('click', () => {
-        ifLiked = !ifLiked;
-        apiCall('job/like', 'PUT', { id: job.id, turnon: ifLiked })
-            .then(() => {
-                likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
-                showErrorModal(`${ifLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
-                reloadCurrentPage(targetUserId);
-            })
-            .catch((error) => showErrorModal('Error: ' + error));
-    });
-
-
-    // Show Likes button event listener
     showLikesButton.addEventListener('click', () => {
         const jobData = jobsArray[index];
         const likes = jobData.likes || [];
@@ -579,7 +370,181 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
             showLikesButton.textContent = 'Show Likes';
         }
     });
-
+    likesP.appendChild(showLikesButton);
+    // Delete Button (only for the creator)
+    if (job.creatorId === myId) {
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-job-btn';
+        deleteButton.textContent = 'Delete';
+        deleteButton.dataset.jobId = job.id;
+        deleteButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this job?')) {
+                apiCall('job', 'DELETE', { id: job.id })
+                    .then(() => {
+                        showErrorModal('Job deleted successfully! Refreshing profile...');
+                        reloadCurrentPage(targetUserId);
+                    })
+                    .catch(error => {
+                        showErrorModal('Error deleting job: ' + error);
+                    });
+            }
+        });
+        likesP.appendChild(deleteButton);
+    }
+    // Update Button (only for the creator)
+    if (job.creatorId === myId) {
+        const updateButton = document.createElement('button');
+        updateButton.className = 'update-job-btn';
+        updateButton.textContent = 'Update';
+        updateButton.dataset.jobId = job.id;
+        updateButton.addEventListener('click', () => {
+            removeModalBackdrop();
+            const updateJobModal = new bootstrap.Modal(document.getElementById('update-job-modal'));
+            document.getElementById('update-job-title').value = job.title;
+            document.getElementById('update-job-start-date').value = job.start.split('T')[0].split('-').reverse().join('/');
+            document.getElementById('update-job-description').value = job.description;
+            document.getElementById('update-job-image').value = '';
+            const previewDiv = document.getElementById('update-job-image-preview');
+            const previewImg = document.getElementById('update-preview-img');
+            if (job.image) {
+                previewImg.src = job.image;
+                previewDiv.style.display = 'block';
+            } else {
+                previewDiv.style.display = 'none';
+            }
+            const imageInput = document.getElementById('update-job-image');
+            imageInput.onchange = () => {
+                const file = imageInput.files[0];
+                if (file) {
+                    fileToDataUrl(file)
+                        .then((dataUrl) => {
+                            previewImg.src = dataUrl;
+                            previewDiv.style.display = 'block';
+                        })
+                        .catch((error) => {
+                            showErrorModal('Error previewing image: ' + error);
+                            previewDiv.style.display = 'none';
+                        });
+                } else {
+                    previewImg.src = job.image || '';
+                    previewDiv.style.display = job.image ? 'block' : 'none';
+                }
+            };
+            updateJobModal.show();
+            const saveButton = document.getElementById('update-job-btn');
+            const newSaveButton = saveButton.cloneNode(true);
+            saveButton.parentNode.replaceChild(newSaveButton, saveButton);
+            newSaveButton.addEventListener('click', () => {
+                const title = document.getElementById('update-job-title').value.trim();
+                const startDate = document.getElementById('update-job-start-date').value.trim();
+                const description = document.getElementById('update-job-description').value.trim();
+                const imageFile = document.getElementById('update-job-image').files[0];
+                if (!title || !startDate || !description) {
+                    updateJobModal.hide();
+                    showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
+                    return;
+                }
+                const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+                if (!datePattern.test(startDate)) {
+                    updateJobModal.hide();
+                    showErrorModal('Start Date must be in the format DD/MM/YYYY.');
+                    return;
+                }
+                const [day, month, year] = startDate.split('/').map(Number);
+                const parsedDate = new Date(year, month - 1, day);
+                if (
+                    parsedDate.getDate() !== day ||
+                    parsedDate.getMonth() + 1 !== month ||
+                    parsedDate.getFullYear() !== year
+                ) {
+                    updateJobModal.hide();
+                    showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
+                    return;
+                }
+                const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const updatedJobData = {
+                    id: job.id,
+                    title,
+                    start: formattedDate,
+                    description,
+                };
+                const updateJob = () => {
+                    apiCall('job', 'PUT', updatedJobData)
+                        .then(() => {
+                            updateJobModal.hide();
+                            removeModalBackdrop();
+                            showErrorModal('Job updated successfully! Refreshing page...');
+                            reloadCurrentPage(targetUserId);
+                        })
+                        .catch((error) => {
+                            updateJobModal.hide();
+                            showErrorModal('Error updating job: ' + error);
+                        });
+                };
+                if (imageFile) {
+                    fileToDataUrl(imageFile)
+                        .then((dataUrl) => {
+                            updatedJobData.image = dataUrl;
+                            updateJob();
+                        })
+                        .catch((error) => {
+                            updateJobModal.hide();
+                            showErrorModal('Error processing image: ' + error);
+                        });
+                } else {
+                    updatedJobData.image = job.image || undefined;
+                    updateJob();
+                }
+            });
+        });
+        likesP.appendChild(updateButton);
+    }
+    jobContainer.appendChild(likesP);
+    // Likes list (hidden by default)
+    const likesListDiv = document.createElement('div');
+    likesListDiv.className = 'likes-list';
+    likesListDiv.style.display = 'none';
+    jobContainer.appendChild(likesListDiv);
+    // Description
+    const descriptionP = document.createElement('p');
+    const descriptionStrong = document.createElement('strong');
+    descriptionStrong.textContent = 'Description: ';
+    descriptionP.appendChild(descriptionStrong);
+    const mydescription = document.createElement('p');
+    mydescription.textContent = job.description;
+    descriptionP.appendChild(mydescription);
+    jobContainer.appendChild(descriptionP);
+    // Comments count
+    const commentsCount = job.comments ? job.comments.length : 0;
+    const commentsCountP = document.createElement('p');
+    const commentsCountStrong = document.createElement('strong');
+    commentsCountStrong.textContent = 'Comments: ';
+    commentsCountP.appendChild(commentsCountStrong);
+    commentsCountP.appendChild(document.createTextNode(commentsCount));
+    jobContainer.appendChild(commentsCountP);
+    // Comments
+    const commentsDiv = document.createElement('div');
+    commentsDiv.className = 'comments';
+    if (job.comments && job.comments.length > 0) {
+        const commentsList = document.createElement('ul');
+        Promise.all(
+            job.comments.map(comment =>
+                createUserLinkWithAvatar(comment.userId, comment.comment)
+            )
+        ).then(commentElements => {
+            commentElements.forEach(commentElement => {
+                commentsList.appendChild(commentElement);
+            });
+        }).catch(error => {
+            showErrorModal(`Error loading comments: ${error}`);
+        });
+        commentsDiv.appendChild(commentsList);
+    } else {
+        const noCommentsP = document.createElement('p');
+        noCommentsP.textContent = 'No comments yet.';
+        commentsDiv.appendChild(noCommentsP);
+    }
+    jobContainer.appendChild(commentsDiv);
     return jobContainer;
 };
 
