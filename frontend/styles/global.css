@@ -89,3 +89,7 @@ html, body {
     height: 200px;
     border: 2px solid #ddd;
 }
+
+.delete-job {
+    margin-top: 10px;
+}

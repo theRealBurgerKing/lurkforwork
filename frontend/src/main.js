@@ -297,6 +297,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
     descriptionP.textContent = job.description;
     jobContainer.appendChild(descriptionP);
 
+    
     // Comments count
     const commentsCount = job.comments ? job.comments.length : 0;
     const commentsCountP = document.createElement('p');
@@ -335,7 +336,26 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         commentsDiv.appendChild(noCommentsP);
     }
     jobContainer.appendChild(commentsDiv);
-
+    // Delete Button (only visible to the job creator)
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'btn btn-danger delete-job';
+    deleteButton.textContent = 'Delete Job';
+    deleteButton.dataset.jobId = job.id;
+    deleteButton.style.display = job.creatorId === myId ? 'inline-block' : 'none'; // Only show if the user is the creator
+    deleteButton.addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete this job?')) {
+            apiCall('job', 'DELETE', { id: job.id })
+                .then(() => {
+                    showErrorModal('Job deleted successfully! Refreshing page...');
+                    reloadCurrentPage(targetUserId);
+                })
+                .catch((error) => {
+                    showErrorModal('Error deleting job: ' + error);
+                });
+        }
+    });
+    jobContainer.appendChild(deleteButton);
+    
 
 
     // Like button event listener
@@ -490,7 +510,7 @@ const loadProfile = ()=>{
                 previewDiv.style.display = 'none';
             }
         });
-        
+
 
         // remove old EventListener
         const saveButton = document.getElementById('save-profile-changes');
