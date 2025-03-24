@@ -377,7 +377,26 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         commentsDiv.appendChild(noCommentsP);
     }
     jobContainer.appendChild(commentsDiv);
-    
+    // Delete Button (only for the creator)
+    if (job.creatorId === myId) {
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-job-btn';
+        deleteButton.textContent = 'Delete';
+        deleteButton.dataset.jobId = job.id;
+        deleteButton.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this job?')) {
+                apiCall('job', 'DELETE', { id: job.id })
+                    .then(() => {
+                        showErrorModal('Job deleted successfully! Refreshing profile...');
+                        reloadCurrentPage(targetUserId);
+                    })
+                    .catch(error => {
+                        showErrorModal('Error deleting job: ' + error);
+                    });
+            }
+        });
+        likesP.appendChild(deleteButton);
+    }
 
 
     // Like button event listener

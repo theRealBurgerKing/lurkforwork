@@ -91,15 +91,28 @@ html, body {
     border: 2px solid #ddd;
     object-fit: cover;
 }
-.delete-job {
+/* .delete-job {
     margin-top: 10px;
+} */
+.delete-job-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
+.delete-job-btn:hover {
+    background-color: #c82333;
+}
 .little-profile-pic {
-    width: 40px;
-    height: 40px;
+    width: 30px !important;
+    height: 30px !important;
     object-fit: cover;
     margin-right: 10px;
+    display: flex;
 }
 
 .placeholder-avatar {
@@ -118,8 +131,8 @@ html, body {
 }
 
 .little-profile-pic.placeholder-avatar {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     margin-right: 10px;
     font-size: 16px;
 }
@@ -131,3 +144,4 @@ html, body {
 .comments ul li span {
     flex: 1;
 }
+
