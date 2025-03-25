@@ -20,10 +20,10 @@ const reloadCurrentPage = (targetUserId = null) => {
     if (currentPage === 'page-feed') {
         loadFeed();
     } else if (currentPage === 'page-profile') {
-        loadProfile();
+        loadUserProfile(myId, true);
     } else if (currentPage === 'page-other-profile') {
         if (targetUserId) {
-            loadOtherProfile(targetUserId);
+            loadUserProfile(targetUserId, false);
         } else {
             showErrorModal('Target user ID not found for other-profile page.');
         }
@@ -249,20 +249,20 @@ function sendUpdateRequest(updatedData) {
 };
 
 //show page named [pageName] and hide other
-const showPage = (pageName,targetUserId=null)=>{
+const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
-    for (const page of pages){
+    for (const page of pages) {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
-    if(pageName==='feed'){
+    if (pageName === 'feed') {
         loadFeed();
     }
-    if(pageName==='profile'){
-        loadProfile();
+    if (pageName === 'profile') {
+        loadUserProfile(myId, true); // Load own profile
     }
     if (pageName === 'other-profile' && targetUserId) {
-        loadOtherProfile(targetUserId);
+        loadUserProfile(targetUserId, false); // Load other user's profile
     }
 };
 
@@ -371,6 +371,102 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         }
     });
     likesP.appendChild(showLikesButton);
+    
+
+    
+
+    jobContainer.appendChild(likesP);
+    // Likes list (hidden by default)
+    const likesListDiv = document.createElement('div');
+    likesListDiv.className = 'likes-list';
+    likesListDiv.style.display = 'none';
+    jobContainer.appendChild(likesListDiv);
+    // Description
+    const descriptionP = document.createElement('p');
+    const descriptionStrong = document.createElement('strong');
+    descriptionStrong.textContent = 'Description: ';
+    descriptionP.appendChild(descriptionStrong);
+    const mydescription = document.createElement('p');
+    mydescription.textContent = job.description;
+    descriptionP.appendChild(mydescription);
+    jobContainer.appendChild(descriptionP);
+    // Comments count
+    const commentsCount = job.comments ? job.comments.length : 0;
+    const commentsCountP = document.createElement('p');
+    const commentsCountStrong = document.createElement('strong');
+    commentsCountStrong.textContent = 'Comments: ';
+    commentsCountP.appendChild(commentsCountStrong);
+    commentsCountP.appendChild(document.createTextNode(commentsCount));
+    
+
+    // Comment Button
+    const commentButton = document.createElement('button');
+    commentButton.className = 'comment-job-btn';
+    commentButton.textContent = 'Comment';
+    commentButton.dataset.jobId = job.id;
+    commentButton.addEventListener('click', () => {
+        removeModalBackdrop();
+        const commentModal = new bootstrap.Modal(document.getElementById('comment-modal'));
+        const commentTextArea = document.getElementById('comment-text');
+        commentTextArea.value = '';
+        commentModal.show();
+
+        const submitCommentButton = document.getElementById('submit-comment-btn');
+        const newSubmitButton = submitCommentButton.cloneNode(true);
+        submitCommentButton.parentNode.replaceChild(newSubmitButton, submitCommentButton);
+        newSubmitButton.addEventListener('click', () => {
+            const commentText = commentTextArea.value.trim();
+            if (!commentText) {
+                commentModal.hide();
+                showErrorModal('Please enter a comment.');
+                return;
+            }
+
+            const commentData = {
+                id: job.id,
+                comment: commentText
+            };
+
+            apiCall('job/comment', 'POST', commentData)
+                .then(() => {
+                    commentModal.hide();
+                    removeModalBackdrop();
+                    showErrorModal('Comment posted successfully! Refreshing page...');
+                    reloadCurrentPage(targetUserId);
+                })
+                .catch(error => {
+                    commentModal.hide();
+                    showErrorModal('Error posting comment: ' + error);
+                });
+        });
+    });
+    commentsCountP.appendChild(commentButton);
+
+    jobContainer.appendChild(commentsCountP);
+    // Comments
+    const commentsDiv = document.createElement('div');
+    commentsDiv.className = 'comments';
+    if (job.comments && job.comments.length > 0) {
+        const commentsList = document.createElement('ul');
+        Promise.all(
+            job.comments.map(comment =>
+                createUserLinkWithAvatar(comment.userId, comment.comment)
+            )
+        ).then(commentElements => {
+            commentElements.forEach(commentElement => {
+                commentsList.appendChild(commentElement);
+            });
+        }).catch(error => {
+            showErrorModal(`Error loading comments: ${error}`);
+        });
+        commentsDiv.appendChild(commentsList);
+    } else {
+        const noCommentsP = document.createElement('p');
+        noCommentsP.textContent = 'No comments yet.';
+        commentsDiv.appendChild(noCommentsP);
+    }
+    jobContainer.appendChild(commentsDiv);
+
     // Delete Button (only for the creator)
     if (job.creatorId === myId) {
         const deleteButton = document.createElement('button');
@@ -389,7 +485,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                     });
             }
         });
-        likesP.appendChild(deleteButton);
+        jobContainer.appendChild(deleteButton);
     }
     // Update Button (only for the creator)
     if (job.creatorId === myId) {
@@ -497,98 +593,10 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
                 }
             });
         });
-        likesP.appendChild(updateButton);
+        jobContainer.appendChild(updateButton);
     }
 
-    // Comment Button
-    const commentButton = document.createElement('button');
-    commentButton.className = 'comment-job-btn';
-    commentButton.textContent = 'Comment';
-    commentButton.dataset.jobId = job.id;
-    commentButton.addEventListener('click', () => {
-        removeModalBackdrop();
-        const commentModal = new bootstrap.Modal(document.getElementById('comment-modal'));
-        const commentTextArea = document.getElementById('comment-text');
-        commentTextArea.value = '';
-        commentModal.show();
 
-        const submitCommentButton = document.getElementById('submit-comment-btn');
-        const newSubmitButton = submitCommentButton.cloneNode(true);
-        submitCommentButton.parentNode.replaceChild(newSubmitButton, submitCommentButton);
-        newSubmitButton.addEventListener('click', () => {
-            const commentText = commentTextArea.value.trim();
-            if (!commentText) {
-                commentModal.hide();
-                showErrorModal('Please enter a comment.');
-                return;
-            }
-
-            const commentData = {
-                id: job.id,
-                comment: commentText
-            };
-
-            apiCall('job/comment', 'POST', commentData)
-                .then(() => {
-                    commentModal.hide();
-                    removeModalBackdrop();
-                    showErrorModal('Comment posted successfully! Refreshing page...');
-                    reloadCurrentPage(targetUserId);
-                })
-                .catch(error => {
-                    commentModal.hide();
-                    showErrorModal('Error posting comment: ' + error);
-                });
-        });
-    });
-    likesP.appendChild(commentButton);
-
-    jobContainer.appendChild(likesP);
-    // Likes list (hidden by default)
-    const likesListDiv = document.createElement('div');
-    likesListDiv.className = 'likes-list';
-    likesListDiv.style.display = 'none';
-    jobContainer.appendChild(likesListDiv);
-    // Description
-    const descriptionP = document.createElement('p');
-    const descriptionStrong = document.createElement('strong');
-    descriptionStrong.textContent = 'Description: ';
-    descriptionP.appendChild(descriptionStrong);
-    const mydescription = document.createElement('p');
-    mydescription.textContent = job.description;
-    descriptionP.appendChild(mydescription);
-    jobContainer.appendChild(descriptionP);
-    // Comments count
-    const commentsCount = job.comments ? job.comments.length : 0;
-    const commentsCountP = document.createElement('p');
-    const commentsCountStrong = document.createElement('strong');
-    commentsCountStrong.textContent = 'Comments: ';
-    commentsCountP.appendChild(commentsCountStrong);
-    commentsCountP.appendChild(document.createTextNode(commentsCount));
-    jobContainer.appendChild(commentsCountP);
-    // Comments
-    const commentsDiv = document.createElement('div');
-    commentsDiv.className = 'comments';
-    if (job.comments && job.comments.length > 0) {
-        const commentsList = document.createElement('ul');
-        Promise.all(
-            job.comments.map(comment =>
-                createUserLinkWithAvatar(comment.userId, comment.comment)
-            )
-        ).then(commentElements => {
-            commentElements.forEach(commentElement => {
-                commentsList.appendChild(commentElement);
-            });
-        }).catch(error => {
-            showErrorModal(`Error loading comments: ${error}`);
-        });
-        commentsDiv.appendChild(commentsList);
-    } else {
-        const noCommentsP = document.createElement('p');
-        noCommentsP.textContent = 'No comments yet.';
-        commentsDiv.appendChild(noCommentsP);
-    }
-    jobContainer.appendChild(commentsDiv);
     return jobContainer;
 };
 
