@@ -25,7 +25,7 @@ html, body {
     max-width: 100%;
     height: auto;
 }
-
+/* ----------button--------- */
 /* btn-profile */
 #btn-profile {
     padding: 8px 16px;
@@ -44,6 +44,9 @@ html, body {
 #btn-profile:hover {
     background-color: #0056b3;
 }
+
+
+
 
 /* btn-search */
 #btn-search {
@@ -81,21 +84,7 @@ html, body {
     resize: vertical;
 }
 
-
-#edit-image-preview img {
-    width: 150px;
-    height: 150px;
-    border: 2px solid #ddd;
-}
-
-
-.main-profile-pic {
-    width: 200px;
-    height: 200px;
-    border: 2px solid #ddd;
-    object-fit: cover;
-}
-
+/* delete-job-btn */
 .delete-job-btn {
     background-color: #dc3545;
     color: white;
@@ -109,6 +98,54 @@ html, body {
 .delete-job-btn:hover {
     background-color: #c82333;
 }
+
+/* update-job-btn */
+.update-job-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.update-job-btn:hover {
+    background-color: #0056b3;
+}
+
+/* comment-job-button */
+.comment-job-btn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.comment-job-btn:hover {
+    background-color: #218838;
+}
+
+
+/*  */
+#edit-image-preview img {
+    width: 150px;
+    height: 150px;
+    border: 2px solid #ddd;
+}
+
+/* profile-avatar */
+.main-profile-pic {
+    width: 200px;
+    height: 200px;
+    border: 2px solid #ddd;
+    object-fit: cover;
+}
+
+
 .little-profile-pic {
     width: 30px !important;
     height: 30px !important;
@@ -139,29 +176,11 @@ html, body {
     font-size: 16px;
 }
 
-.comments ul li {
-    margin-bottom: 10px;
-}
-
-.comments ul li span {
-    flex: 1;
-}
-
-.update-job-btn {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-left: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.update-job-btn:hover {
-    background-color: #0056b3;
-}
 
 
+
+
+/* -------------page---------- */
 /* page-login */
 #page-login {
     background-color: #e1d8d2;
@@ -224,7 +243,17 @@ html, body {
     margin-top: 10vh;
 }
 
-/* Styles for profile header in loadProfile */
+
+.comments ul li {
+    margin-bottom: 10px;
+}
+
+.comments ul li span {
+    flex: 1;
+}
+
+/* ---------Profile header------------ */
+/* profile header in loadProfile */
 #profile-header {
     display: flex;
     align-items: center;
@@ -255,7 +284,7 @@ html, body {
     margin: 5px 0 0 0;
 }
 
-/* Styles for profile header in loadOtherProfile */
+/* profile header in loadOtherProfile */
 #other-profile-header {
     display: flex;
     align-items: center;
@@ -285,7 +314,7 @@ html, body {
     margin: 5px 0 0 0;
 }
 
-/* Styles for "Users who watch me" section in loadProfile */
+/* watchers in loadProfile */
 #profile-watchers-section {
     background-color: #f0f8ff;
     padding: 15px;
@@ -299,7 +328,7 @@ html, body {
 }
 
 
-/* Styles for "Users who watch this user" section in loadOtherProfile */
+/* watchers in loadOtherProfile */
 #other-profile-watchers-section {
     background-color: #f0f8ff;
     padding: 15px;
@@ -324,20 +353,7 @@ html, body {
 }
 
 
-/* Style for the Comment button */
-.comment-job-btn {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin-left: 10px;
-    border-radius: 4px;
-    cursor: pointer;
-}
 
-.comment-job-btn:hover {
-    background-color: #218838;
-}
 
 /* Style for the Comment modal */
 #comment-modal .modal-body {
