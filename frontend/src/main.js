@@ -618,15 +618,17 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     document.getElementById("btn-profile").style.display = isOwnProfile ? "none" : "block";
     document.getElementById("btn-search").style.display = "none";
 
+    // Check if userId is valid
     if (!userId) {
         showErrorModal('User ID not found. Please log in again.');
         return;
     }
 
-    
+    // Clear the content
+    profileContent.innerHTML = '';
 
+    // Fetch user data
     apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
-        profileContent.innerHTML = '';
         // Create a container for avatar and text (name + email)
         const profileHeader = document.createElement('div');
         profileHeader.id = isOwnProfile ? 'profile-header' : 'other-profile-header';
@@ -642,7 +644,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         } else {
             avatarElement = document.createElement('div');
             avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
-            avatarElement.textContent = data.name.charAt(0).toUpperCase(); // Show initial
+            avatarElement.textContent = data.name.charAt(0).toUpperCase();
             avatarElement.id = isOwnProfile ? 'profile-avatar' : 'other-profile-avatar';
         }
         profileHeader.appendChild(avatarElement);
@@ -666,28 +668,94 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         profileHeader.appendChild(textContainer);
         profileContent.appendChild(profileHeader);
 
-        // Populate the value of Modal
+        // If it's the user's own profile, add edit functionality
+        if (isOwnProfile) {
+            // Populate the edit modal values
+            document.getElementById('edit-name').value = data.name;
+            document.getElementById('edit-email').value = data.email;
+            document.getElementById('edit-password').value = '';
+            document.getElementById('edit-image').value = '';
 
-        
+            const editButton = document.getElementById('btn-edit-profile');
+            editButton.addEventListener('click', () => {
+                removeModalBackdrop();
+                const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
+                modal.show();
+            });
+
+            // Add event listener for image preview
+            const imageInput = document.getElementById('edit-image');
+            const previewDiv = document.getElementById('edit-image-preview');
+            const previewImg = document.getElementById('preview-img');
+
+            imageInput.addEventListener('change', () => {
+                const file = imageInput.files[0];
+                if (file) {
+                    fileToDataUrl(file)
+                        .then((dataUrl) => {
+                            previewImg.src = dataUrl;
+                            previewImg.className = 'rounded-circle';
+                            previewImg.style.objectFit = 'cover';
+                            previewDiv.style.display = 'block';
+                        })
+                        .catch((error) => {
+                            showErrorModal('Error previewing image: ' + error);
+                            previewDiv.style.display = 'none';
+                        });
+                } else {
+                    previewDiv.style.display = 'none';
+                }
+            });
+
+            // Remove old event listener for save button
+            const saveButton = document.getElementById('save-profile-changes');
+            if (saveProfileHandler) {
+                saveButton.removeEventListener('click', saveProfileHandler);
+            }
+
+            // Create new event listener for saving profile changes
+            saveProfileHandler = function () {
+                const updatedData = {};
+                const name = document.getElementById('edit-name').value;
+                const email = document.getElementById('edit-email').value;
+                const password = document.getElementById('edit-password').value;
+                const imageFile = document.getElementById('edit-image').files[0];
+
+                if (name && name !== data.name) updatedData.name = name;
+                if (email && email !== data.email) updatedData.email = email;
+                if (password) updatedData.password = password;
+                if (imageFile) {
+                    fileToDataUrl(imageFile)
+                        .then((dataUrl) => {
+                            updatedData.image = dataUrl;
+                            sendUpdateRequest(updatedData);
+                        })
+                        .catch((error) => showErrorModal('Error processing image: ' + error));
+                } else {
+                    sendUpdateRequest(updatedData);
+                }
+            };
+            saveButton.addEventListener('click', saveProfileHandler);
+        }
 
         // Create a container for the "Users who watch" section
         const watchersSection = document.createElement('div');
         watchersSection.id = isOwnProfile ? 'profile-watchers-section' : 'other-profile-watchers-section';
 
-        // Create a container for the header and button (horizontal layout)
+        // Create a container for the header (and button for other profiles)
         const watchersHeaderContainer = document.createElement('div');
         if (!isOwnProfile) {
             watchersHeaderContainer.id = 'other-profile-watchers-header';
         }
 
-        // Users who watch me (header)
+        // Users who watch (header)
         const watchersHeader = document.createElement('h3');
         watchersHeader.textContent = isOwnProfile
             ? `Users who watch me (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`
             : `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
         watchersHeaderContainer.appendChild(watchersHeader);
 
-        // Watch/Unwatch Button
+        // Watch/Unwatch Button (only for other profiles)
         if (!isOwnProfile) {
             const watchButton = document.createElement('button');
             watchButton.id = 'other-profile-watch-btn';
@@ -750,7 +818,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     }).catch((error) => {
         showErrorModal(error);
     });
-}
+};
 
 
 
