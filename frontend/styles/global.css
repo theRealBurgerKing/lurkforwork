@@ -91,6 +91,7 @@ html, body {
     border: none;
     padding: 5px 10px;
     margin-left: 10px;
+    margin-top: 20px;
     border-radius: 4px;
     cursor: pointer;
 }
@@ -105,7 +106,8 @@ html, body {
     color: white;
     border: none;
     padding: 5px 10px;
-    margin-left: 10px;
+    margin-left: 20px;
+    margin-top: 20px;
     border-radius: 4px;
     cursor: pointer;
 }
@@ -141,6 +143,8 @@ html, body {
 .main-profile-pic {
     width: 200px;
     height: 200px;
+    margin-left: 7vw;
+    margin-right: 3vw;
     border: 2px solid #ddd;
     object-fit: cover;
 }
@@ -175,9 +179,6 @@ html, body {
     margin-right: 10px;
     font-size: 16px;
 }
-
-
-
 
 
 /* -------------page---------- */
@@ -231,17 +232,14 @@ html, body {
     font-size: 50px;
 
 }
-#page-profile{
+#page-profile,
+#page-other-profile {
     margin-left: 10vw;
     margin-right: 10vw;
     margin-top: 10vh;
 }
 
-#page-other-profile{
-    margin-left: 10vw;
-    margin-right: 10vw;
-    margin-top: 10vh;
-}
+
 
 
 .comments ul li {
@@ -254,7 +252,8 @@ html, body {
 
 /* ---------Profile header------------ */
 /* profile header in loadProfile */
-#profile-header {
+#profile-header,
+#other-profile-header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
@@ -267,11 +266,12 @@ html, body {
 
 }
 
-#profile-avatar {
+/* #profile-avatar {
     margin-right: 20px;
-}
+} */
 
-#profile-text {
+#profile-text,
+#other-profile-text{
     display: flex;
     flex-direction: column;
 }
@@ -280,7 +280,8 @@ html, body {
     margin: 0;
 }
 
-#profile-email {
+#profile-email,
+#other-profile-email {
     margin: 5px 0 0 0;
 }
 
@@ -297,38 +298,11 @@ html, body {
     padding-bottom: 3vh;
 }
 
-#other-profile-avatar {
-    margin-right: 20px;
-}
 
-#other-profile-text {
-    display: flex;
-    flex-direction: column;
-}
 
-#other-profile-name {
-    margin: 0;
-}
-
-#other-profile-email {
-    margin: 5px 0 0 0;
-}
 
 /* watchers in loadProfile */
-#profile-watchers-section {
-    background-color: #f0f8ff;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-}
-
-#profile-watchers-section h3 {
-    margin: 0;
-    margin-bottom: 10px;
-}
-
-
-/* watchers in loadOtherProfile */
+#profile-watchers-section,
 #other-profile-watchers-section {
     background-color: #f0f8ff;
     padding: 15px;
@@ -336,16 +310,21 @@ html, body {
     margin-bottom: 20px;
 }
 
+#profile-watchers-section h3,
+#other-profile-watchers-header h3 {
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+
+/* watchers in loadOtherProfile */
+
 #other-profile-watchers-header {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
 }
 
-#other-profile-watchers-header h3 {
-    margin: 0;
-    margin-right: 15px;
-}
 
 #other-profile-watch-btn {
     padding: 5px 10px;
