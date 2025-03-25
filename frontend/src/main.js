@@ -611,21 +611,25 @@ const formatTimeAgo = (createdAt) => {
     }
 };
 
-//profile page
-const loadProfile = ()=>{
-    document.getElementById("btn-profile").style.display = "none";
+
+const loadUserProfile = (userId, isOwnProfile = false) => {
+    // Determine the content container and button visibility based on whether it's the user's own profile
+    const profileContent = document.getElementById(isOwnProfile ? 'profile-content' : 'other-profile-content');
+    document.getElementById("btn-profile").style.display = isOwnProfile ? "none" : "block";
     document.getElementById("btn-search").style.display = "none";
-    if (!myId) {
+
+    if (!userId) {
         showErrorModal('User ID not found. Please log in again.');
         return;
     }
-    let profileContent = document.getElementById('profile-content');
-    apiCall(`user?userId=${myId}`,'GET',{}).then((data)=>{
-        profileContent.innerHTML = '';
 
+    
+
+    apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
+        profileContent.innerHTML = '';
         // Create a container for avatar and text (name + email)
         const profileHeader = document.createElement('div');
-        profileHeader.id = 'profile-header';
+        profileHeader.id = isOwnProfile ? 'profile-header' : 'other-profile-header';
 
         // Profile picture
         let avatarElement;
@@ -634,232 +638,75 @@ const loadProfile = ()=>{
             avatarElement.src = data.image;
             avatarElement.alt = `${data.name}'s profile picture`;
             avatarElement.className = 'rounded-circle main-profile-pic';
-            avatarElement.id = 'profile-avatar'; // Add ID for styling
+            avatarElement.id = isOwnProfile ? 'profile-avatar' : 'other-profile-avatar';
         } else {
-            // No avatar, generate placeholder-avatar
             avatarElement = document.createElement('div');
             avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
             avatarElement.textContent = data.name.charAt(0).toUpperCase(); // Show initial
-            avatarElement.id = 'profile-avatar'; // Add ID for styling
+            avatarElement.id = isOwnProfile ? 'profile-avatar' : 'other-profile-avatar';
         }
         profileHeader.appendChild(avatarElement);
 
         // Create a container for name and email (vertical layout)
         const textContainer = document.createElement('div');
-        textContainer.id = 'profile-text'; // Add ID for styling
+        textContainer.id = isOwnProfile ? 'profile-text' : 'other-profile-text';
 
         // Name
         const nameHeader = document.createElement('h2');
         nameHeader.textContent = data.name;
-        nameHeader.id = 'profile-name'; // Add ID for styling
+        nameHeader.id = isOwnProfile ? 'profile-name' : 'other-profile-name';
         textContainer.appendChild(nameHeader);
 
         // Email
         const emailP = document.createElement('p');
         emailP.textContent = `Email: ${data.email}`;
-        emailP.id = 'profile-email'; // Add ID for styling
+        emailP.id = isOwnProfile ? 'profile-email' : 'other-profile-email';
         textContainer.appendChild(emailP);
 
         profileHeader.appendChild(textContainer);
         profileContent.appendChild(profileHeader);
 
         // Populate the value of Modal
-        document.getElementById('edit-name').value = data.name;
-        document.getElementById('edit-email').value = data.email;
-        document.getElementById('edit-password').value = '';
-        document.getElementById('edit-image').value = '';
 
-        const editButton = document.getElementById('btn-edit-profile');
-        editButton.addEventListener('click', () => {
-            removeModalBackdrop();
-            const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
-            modal.show();
-        });
-        // Add event listener for image preview
-        const imageInput = document.getElementById('edit-image');
-        const previewDiv = document.getElementById('edit-image-preview');
-        const previewImg = document.getElementById('preview-img');
+        
 
-        imageInput.addEventListener('change', () => {
-            const file = imageInput.files[0];
-            if (file) {
-                fileToDataUrl(file)
-                    .then((dataUrl) => {
-                        previewImg.src = dataUrl;
-                        previewImg.className = 'rounded-circle';
-                        previewImg.style.objectFit = 'cover';
-                        previewDiv.style.display = 'block';
-                    })
-                    .catch((error) => {
-                        showErrorModal('Error previewing image: ' + error);
-                        previewDiv.style.display = 'none';
-                    });
-            } else {
-                previewDiv.style.display = 'none';
-            }
-        });
-
-
-        // remove old EventListener
-        const saveButton = document.getElementById('save-profile-changes');
-        if (saveProfileHandler) {
-            saveButton.removeEventListener('click', saveProfileHandler);
-        }
-
-        // create new Eventlistener
-        saveProfileHandler = function() {
-            const updatedData = {};
-            const name = document.getElementById('edit-name').value;
-            const email = document.getElementById('edit-email').value;
-            const password = document.getElementById('edit-password').value;
-            const imageFile = document.getElementById('edit-image').files[0];
-
-            if (name && name !== data.name) updatedData.name = name;
-            if (email && email !== data.email) updatedData.email = email;
-            if (password) updatedData.password = password;
-            if (imageFile) {
-                fileToDataUrl(imageFile)
-                    .then((dataUrl) => {
-                        updatedData.image = dataUrl;
-                        sendUpdateRequest(updatedData);
-                    })
-                    .catch((error) => showErrorModal('Error processing image: ' + error));
-            } else {
-                sendUpdateRequest(updatedData);
-            }
-        };
-        saveButton.addEventListener('click', saveProfileHandler);
-
-        // Create a container for "Users who watch me" section
+        // Create a container for the "Users who watch" section
         const watchersSection = document.createElement('div');
-        watchersSection.id = 'profile-watchers-section'; // Add ID for styling
-
-        // Users who watch me (header)
-        const watchersHeader = document.createElement('h3');
-        watchersHeader.textContent = `Users who watch me (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
-        watchersSection.appendChild(watchersHeader);
-
-        // Watchers list
-        const watchersList = document.createElement('ul');
-        if (data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.length > 0) {
-            Promise.all(
-                data.usersWhoWatchMeUserIds.map(userId =>
-                    createUserLinkWithAvatar(userId)
-                )
-            ).then(watcherElements => {
-                watcherElements.forEach(watcherElement => {
-                    watchersList.appendChild(watcherElement);
-                });
-            }).catch(error => {
-                showErrorModal('Error loading watchers: ' + error);
-            });
-        } else {
-            const noWatchers = document.createElement('li');
-            noWatchers.textContent = 'No users are watching you.';
-            watchersList.appendChild(noWatchers);
-        }
-        watchersSection.appendChild(watchersList);
-        profileContent.appendChild(watchersSection);
-
-
-        // Jobs
-        const jobsHeader = document.createElement('h3');
-        jobsHeader.textContent = 'Created Jobs:';
-        profileContent.appendChild(jobsHeader);
-
-        if (data.jobs && data.jobs.length > 0) {
-            data.jobs.forEach((job, index) => {
-                const jobElement = createJobElement(job, index, data.jobs);
-                profileContent.appendChild(jobElement);
-            });
-        } else {
-            const noJobs = document.createElement('p');
-            noJobs.textContent = 'No jobs created yet.';
-            profileContent.appendChild(noJobs);
-        }
-    }).catch((error) => {
-        showErrorModal(error);
-    });
-}
-//load other profile
-const loadOtherProfile = (userId) => {
-    document.getElementById("btn-search").style.display = "none";
-    const profileContent = document.getElementById('other-profile-content');
-    profileContent.innerHTML = '';
-    apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
-        // Create a container for avatar and text (name + email)
-        const profileHeader = document.createElement('div');
-        profileHeader.id = 'other-profile-header'; // Add ID for styling
-
-        // Profile picture
-        let avatarElement;
-        if (data.image) {
-            avatarElement = document.createElement('img');
-            avatarElement.src = data.image;
-            avatarElement.alt = `${data.name}'s profile picture`;
-            avatarElement.className = 'rounded-circle main-profile-pic';
-            avatarElement.id = 'other-profile-avatar'; // Add ID for styling
-        } else {
-            // No big avatar, generate placeholder-avatar
-            avatarElement = document.createElement('div');
-            avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
-            avatarElement.textContent = data.name.charAt(0).toUpperCase();
-            avatarElement.id = 'other-profile-avatar'; // Add ID for styling
-        }
-        profileHeader.appendChild(avatarElement);
-
-        // Create a container for name and email (vertical layout)
-        const textContainer = document.createElement('div');
-        textContainer.id = 'other-profile-text'; // Add ID for styling
-
-        // Name
-        const nameHeader = document.createElement('h2');
-        nameHeader.textContent = data.name;
-        nameHeader.id = 'other-profile-name'; // Add ID for styling
-        textContainer.appendChild(nameHeader);
-
-        // Email
-        const emailP = document.createElement('p');
-        emailP.textContent = `Email: ${data.email}`;
-        emailP.id = 'other-profile-email'; // Add ID for styling
-        textContainer.appendChild(emailP);
-
-        profileHeader.appendChild(textContainer);
-        profileContent.appendChild(profileHeader);
-
-        // Create a container for "Users who watch this user" section
-        const watchersSection = document.createElement('div');
-        watchersSection.id = 'other-profile-watchers-section'; // Add ID for styling
+        watchersSection.id = isOwnProfile ? 'profile-watchers-section' : 'other-profile-watchers-section';
 
         // Create a container for the header and button (horizontal layout)
         const watchersHeaderContainer = document.createElement('div');
-        watchersHeaderContainer.id = 'other-profile-watchers-header'; // Add ID for styling
+        if (!isOwnProfile) {
+            watchersHeaderContainer.id = 'other-profile-watchers-header';
+        }
 
-        // Users who watch this user (header)
+        // Users who watch me (header)
         const watchersHeader = document.createElement('h3');
-        watchersHeader.textContent = `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
+        watchersHeader.textContent = isOwnProfile
+            ? `Users who watch me (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`
+            : `Users who watch ${data.name} (Total: ${data.usersWhoWatchMeUserIds ? data.usersWhoWatchMeUserIds.length : 0}):`;
         watchersHeaderContainer.appendChild(watchersHeader);
 
-
-
         // Watch/Unwatch Button
-        const watchButton = document.createElement('button');
-        watchButton.id = 'other-profile-watch-btn'; // Add ID for styling
-        watchButton.className = 'btn btn-primary';
-        const isWatching = data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.includes(myId);
-        watchButton.textContent = isWatching ? 'Unwatch' : 'Watch';
-        watchButton.addEventListener('click', () => {
-            const turnon = !isWatching;
-            apiCall('user/watch', 'PUT', { id: userId, turnon })
-                .then(() => {
-                    showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
-                    reloadCurrentPage(userId);
-                })
-                .catch(error => {
-                    showErrorModal('Error: ' + error);
-                });
-        });
-        watchersHeaderContainer.appendChild(watchButton);
+        if (!isOwnProfile) {
+            const watchButton = document.createElement('button');
+            watchButton.id = 'other-profile-watch-btn';
+            watchButton.className = 'btn btn-primary';
+            const isWatching = data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.includes(myId);
+            watchButton.textContent = isWatching ? 'Unwatch' : 'Watch';
+            watchButton.addEventListener('click', () => {
+                const turnon = !isWatching;
+                apiCall('user/watch', 'PUT', { id: userId, turnon })
+                    .then(() => {
+                        showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
+                        reloadCurrentPage(userId);
+                    })
+                    .catch(error => {
+                        showErrorModal('Error: ' + error);
+                    });
+            });
+            watchersHeaderContainer.appendChild(watchButton);
+        }
 
         watchersSection.appendChild(watchersHeaderContainer);
 
@@ -879,7 +726,7 @@ const loadOtherProfile = (userId) => {
             });
         } else {
             const noWatchers = document.createElement('li');
-            noWatchers.textContent = 'No users are watching this user.';
+            noWatchers.textContent = isOwnProfile ? 'No users are watching you.' : 'No users are watching this user.';
             watchersList.appendChild(noWatchers);
         }
         watchersSection.appendChild(watchersList);
@@ -892,7 +739,7 @@ const loadOtherProfile = (userId) => {
 
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
-                const jobElement = createJobElement(job, index, data.jobs,userId);
+                const jobElement = createJobElement(job, index, data.jobs, isOwnProfile ? null : userId);
                 profileContent.appendChild(jobElement);
             });
         } else {
@@ -903,7 +750,10 @@ const loadOtherProfile = (userId) => {
     }).catch((error) => {
         showErrorModal(error);
     });
-};
+}
+
+
+
 //feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
