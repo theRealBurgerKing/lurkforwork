@@ -984,6 +984,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
                 loadFeed(); // Refresh the feed to show the new job
             })
             .catch((error) => {
+                modal.hide();
                 showErrorModal('Error posting job: ' + error);
             });
     };
@@ -994,6 +995,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
                 postJob();
             })
             .catch((error) => {
+                modal.hide();
                 showErrorModal('Error processing image: ' + error);
             });
     } else {
@@ -1013,6 +1015,7 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
     const email = document.getElementById('search-email').value.trim();
     const modal = bootstrap.Modal.getInstance(document.getElementById('search-modal'));
     if (!email) {
+        modal.hide();
         showErrorModal('Please enter a valid email address.');
         return;
     }
@@ -1025,6 +1028,7 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
             reloadCurrentPage();
         })
         .catch(error => {
+            modal.hide();
             showErrorModal('Error watching user: ' + error);
         });
 });
