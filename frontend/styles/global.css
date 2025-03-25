@@ -13,11 +13,13 @@ html, body {
 /* Job-post */
 .job-post {
     margin: 20px 0;
-    padding: 30px;
+    padding: 60px;
     background-color: #e1d8d2;
     border-radius: 20px;
-    margin-left: 6vw;
-    margin-right: 6vw;
+    margin-left: 12vw;
+    margin-right: 12vw;
+    color: #8a5039;
+    font-size: 25px;
 }
 .job-post img {
     max-width: 100%;
@@ -196,12 +198,20 @@ html, body {
     margin-bottom: 30px;
     color: #8a5039;
 }
+
+/* page-feed */
 #page-feed{
     margin-left: 10vw;
     margin-right: 10vw;
     margin-top: 10vh;
 }
 
+.page-title{
+    margin-bottom: 30px;
+    color: #8a5039;
+    font-size: 50px;
+
+}
 #page-profile{
     margin-left: 10vw;
     margin-right: 10vw;
@@ -277,7 +287,7 @@ html, body {
 
 /* Styles for "Users who watch me" section in loadProfile */
 #profile-watchers-section {
-    background-color: #f0f8ff; /* Light blue background color, same as other-profile */
+    background-color: #f0f8ff;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -285,7 +295,7 @@ html, body {
 
 #profile-watchers-section h3 {
     margin: 0;
-    margin-bottom: 10px; /* Space between header and list */
+    margin-bottom: 10px;
 }
 
 
