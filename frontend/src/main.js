@@ -20,10 +20,10 @@ const reloadCurrentPage = (targetUserId = null) => {
     if (currentPage === 'page-feed') {
         loadFeed();
     } else if (currentPage === 'page-profile') {
-        loadProfile();
+        loadUserProfile(myId, true);
     } else if (currentPage === 'page-other-profile') {
         if (targetUserId) {
-            loadOtherProfile(targetUserId);
+            loadUserProfile(targetUserId, false);
         } else {
             showErrorModal('Target user ID not found for other-profile page.');
         }
@@ -249,20 +249,20 @@ function sendUpdateRequest(updatedData) {
 };
 
 //show page named [pageName] and hide other
-const showPage = (pageName,targetUserId=null)=>{
+const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
-    for (const page of pages){
+    for (const page of pages) {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
-    if(pageName==='feed'){
+    if (pageName === 'feed') {
         loadFeed();
     }
-    if(pageName==='profile'){
-        loadProfile();
+    if (pageName === 'profile') {
+        loadUserProfile(myId, true); // Load own profile
     }
     if (pageName === 'other-profile' && targetUserId) {
-        loadOtherProfile(targetUserId);
+        loadUserProfile(targetUserId, false); // Load other user's profile
     }
 };
 
