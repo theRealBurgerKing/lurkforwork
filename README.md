@@ -1,5 +1,5 @@
 ## 0. Change Log
-N/A
+29/3: Update on the 2.2.1 - Author details
 
 # Assessment 3 - Vanilla JS: LurkForWork
 
@@ -59,7 +59,7 @@ The application should present a "feed" of user content on the home page derived
 The jobs should be displayed in reverse chronological order (most recent jobs first). 
 
 Each job should display:
-1. Who the job post was made by
+1. Name of the author who made the job post
 2. When it was posted
   * If the job was posted today (in the last 24 hours), it should display how many hours and minutes ago it was posted
   * If the job was posted more than 24 hours ago, it should just display the date DD/MM/YYYY that it was posted
