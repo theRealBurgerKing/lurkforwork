@@ -257,23 +257,23 @@ function sendUpdateRequest(updatedData) {
 //show page named [pageName] and hide other
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
-    let cleanupFeed = null;
+    let cleanupFunc = null;
     for (const page of pages) {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
     if (pageName === 'feed') {
-        cleanupFeed = loadFeed();
+        cleanupFunc = loadFeed();
     }
     if (pageName === 'profile') {
-        loadUserProfile(myId, true); // Load own profile
+        cleanupFunc = loadUserProfile(myId, true); // Load own profile
     }
     if (pageName === 'other-profile' && targetUserId) {
-        loadUserProfile(targetUserId, false); // Load other user's profile
+        cleanupFunc = loadUserProfile(targetUserId, false); // Load other user's profile
     }
     // doing cleanupFeed when leaving
     return () => {
-        if (cleanupFeed) cleanupFeed();
+        if (cleanupFunc) cleanupFunc();
     };
 };
 
@@ -336,7 +336,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         apiCall('job/like', 'PUT', { id: job.id, turnon: newIfLiked })
             .then(() => {
                 likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
-                showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
+                showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully!`);
             })
             .catch(error => showErrorModal('Error: ' + error));
     });
@@ -440,7 +440,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                 .then(() => {
                     commentModal.hide();
                     removeModalBackdrop();
-                    showErrorModal('Comment posted successfully! Refreshing page...');
+                    showErrorModal('Comment posted successfully!');
                 })
                 .catch(error => {
                     commentModal.hide();
@@ -485,7 +485,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
             if (confirm('Are you sure you want to delete this job?')) {
                 apiCall('job', 'DELETE', { id: job.id })
                     .then(() => {
-                        showErrorModal('Job deleted successfully! Refreshing profile...');
+                        showErrorModal('Job deleted successfully!');
                     })
                     .catch(error => {
                         showErrorModal('Error deleting job: ' + error);
@@ -584,7 +584,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                         .then(() => {
                             updateJobModal.hide();
                             removeModalBackdrop();
-                            showErrorModal('Job updated successfully! Refreshing page...');
+                            showErrorModal('Job updated successfully!');
                         })
                         .catch((error) => {
                             updateJobModal.hide();
@@ -648,6 +648,45 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
 
     // Clear the content
     profileContent.innerHTML = '';
+    let pollingInterval = null;
+
+    // Update jobs
+    const updateJobs = (jobs, container, targetUserId) => {
+        const jobsSection = container.querySelector('.jobs-section') || document.createElement('div');
+        jobsSection.className = 'jobs-section';
+        jobsSection.innerHTML = '';
+
+        const jobsHeader = document.createElement('h3');
+        jobsHeader.textContent = 'Created Jobs:';
+        jobsSection.appendChild(jobsHeader);
+
+        if (jobs && jobs.length > 0) {
+            jobs.forEach((job, index) => {
+                const jobElement = showJobElement(job, index, jobs, targetUserId);
+                jobsSection.appendChild(jobElement);
+            });
+        } else {
+            const noJobs = document.createElement('p');
+            noJobs.textContent = 'No jobs created yet.';
+            jobsSection.appendChild(noJobs);
+        }
+
+        // add to container if first time load
+        if (!container.contains(jobsSection)) {
+            container.appendChild(jobsSection);
+        }
+    };
+
+    // polling profile
+    const pollProfile = () => {
+        apiCall(`user?userId=${userId}`, 'GET', {})
+            .then((data) => {
+                updateJobs(data.jobs, profileContent, isOwnProfile ? null : userId);
+            })
+            .catch((error) => {
+                console.error('Error polling profile:', error);
+            });
+    };
 
     // Fetch user data
     apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
@@ -826,7 +865,12 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         const jobsHeader = document.createElement('h3');
         jobsHeader.textContent = 'Created Jobs:';
         profileContent.appendChild(jobsHeader);
+        
+        // 初次加载 Jobs
+        updateJobs(data.jobs, profileContent, isOwnProfile ? null : userId);
 
+        // 启动轮询，每 5 秒更新 Jobs
+        pollingInterval = setInterval(pollProfile, 5000);
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
                 const jobElement = showJobElement(job, index, data.jobs, isOwnProfile ? null : userId);
@@ -840,6 +884,14 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     }).catch((error) => {
         showErrorModal(error);
     });
+    // 清理函数
+    const cleanup = () => {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+    };
+    return cleanup;
 };
 
 
@@ -1074,7 +1126,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
             .then(() => {
                 modal.hide();
                 removeModalBackdrop();
-                showErrorModal('Job posted successfully! Refreshing feed...');
+                showErrorModal('Job posted successfully!');
                 loadFeed();
             })
             .catch((error) => {
