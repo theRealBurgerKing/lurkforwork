@@ -252,6 +252,7 @@ document.getElementById('btn-logout').addEventListener('click',()=>{
 document.getElementById('btn-other-profile-back').addEventListener('click', () => {
     showPage('feed');
 });
+
 function sendUpdateRequest(updatedData) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
     const editButton = document.getElementById('btn-edit-profile');
@@ -587,6 +588,14 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                     showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
                     return;
                 }
+                // Check if the start date is earlier than today
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                if (parsedDate < today) {
+                    updateJobModal.hide();
+                    showErrorModal('Start Date cannot be earlier than today.');
+                    return;
+                }
                 const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const updatedJobData = {
                     id: job.id,
@@ -869,80 +878,86 @@ const loadFeed = () => {
     feedContent.innerHTML = ''; // Clear existing content
     jobIds = []; // Reset job IDs
 
-    let start = 0; // Track the current page (start index)
-    let isLoading = false; // Prevent multiple simultaneous requests
-    let hasMoreData = true; // Track if there is more data to load
-    let lastScrollTime = 0; // For throttling
-    const throttleDelay = 200; // 200ms throttle delay
+    let start = 0; // current page index
+    let isLoading = false;
+    let hasMoreData = true;
+    let lastScrollTime = 0;
+    const throttleDelay = 200; // throttle delay
 
-    // Function to load jobs for a given start index
+    // load jobs for a given startindex
     const loadJobs = (startIndex) => {
-        if (isLoading || !hasMoreData) return; // Prevent loading if already loading or no more data
-
-        isLoading = true;
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.textContent = 'Loading...';
-        loadingIndicator.className = 'loading-indicator';
-        feedContent.appendChild(loadingIndicator);
-
-        apiCall(`job/feed?start=${startIndex}`, 'GET', {})
-            .then((data) => {
-                loadingIndicator.remove();
-                const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                
-                // If no more data is returned, stop further loading and add bottom padding
-                if (sortedJobs.length === 0) {
-                    hasMoreData = false;
+        return new Promise((resolve, reject) => {
+            if (isLoading || !hasMoreData) {
+                resolve(); // Resolve immediately if already loading or no more data
+                return;
+            }
+            isLoading = true;
+            apiCall(`job/feed?start=${startIndex}`, 'GET', {})
+                .then((data) => {
+                    const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    // If no more data is returned, stop further loading and add bottom padding
+                    if (sortedJobs.length === 0) {
+                        hasMoreData = false;
+                        isLoading = false;
+                        // Add a bottom padding element
+                        const bottomPadding = document.createElement('div');
+                        bottomPadding.className = 'bottom-padding';
+                        bottomPadding.innerText = "-------No more items-------"
+                        feedContent.appendChild(bottomPadding);
+                        resolve();
+                        return;
+                    }
+                    sortedJobs.forEach((job, index) => {
+                        jobIds.push(job.id);
+                        const jobElement = showJobElement(job, index, sortedJobs);
+                        feedContent.appendChild(jobElement);
+                    });
                     isLoading = false;
-                    // Add a bottom padding element
-                    const bottomPadding = document.createElement('div');
-                    bottomPadding.className = 'bottom-padding';
-                    feedContent.appendChild(bottomPadding);
-                    return;
-                }
-
-                // Append new jobs to feed-content
-                sortedJobs.forEach((job, index) => {
-                    jobIds.push(job.id);
-                    const jobElement = showJobElement(job, index, sortedJobs);
-                    feedContent.appendChild(jobElement);
+                    start += sortedJobs.length; // Update start index for the next page
+                    resolve();
+                })
+                .catch((error) => {
+                    showErrorModal(error);
+                    isLoading = false;
+                    reject(error);
                 });
-
-                isLoading = false;
-                start += sortedJobs.length; // Update start index for the next page
-            })
-            .catch((error) => {
-                loadingIndicator.remove();
-                showErrorModal(error);
-                isLoading = false;
-            });
+        });
     };
 
     // Load the first page
     loadJobs(start);
 
-    // Add scroll event listener for infinite scrolling with throttling
-    const handleScroll = () => {
+    // Add scroll event listener
+    window.addEventListener('scroll', () => {
         const now = Date.now();
         if (now - lastScrollTime < throttleDelay) return; // Throttle the scroll event
         lastScrollTime = now;
 
-        const scrollHeight = document.documentElement.scrollHeight; // Total height of the document
-        const scrollTop = window.scrollY || window.pageYOffset; // Current scroll position
-        const clientHeight = window.innerHeight; // Viewport height
+        const scrollHeight = document.documentElement.scrollHeight;
+        const scrollTop = window.scrollY || window.pageYOffset;
+        const clientHeight = window.innerHeight;
 
         // Check if user is near the bottom of the page
-        if (
-            scrollTop + clientHeight >= scrollHeight - 200 && // 200px threshold
+        if (scrollTop + clientHeight >= scrollHeight - 250 && // threshold
             !isLoading &&
             hasMoreData
         ) {
-            loadJobs(start);
-        }
-    };
+            // Show loading indicator
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.textContent = 'Loading...';
+            loadingIndicator.className = 'loading-indicator';
+            feedContent.appendChild(loadingIndicator);
 
-    // Add scroll event listener
-    window.addEventListener('scroll', handleScroll);
+            // Load jobs and remove loading indicator after completion
+            loadJobs(start)
+                .then(() => {
+                    loadingIndicator.remove();
+                })
+                .catch(() => {
+                    loadingIndicator.remove();
+                });
+        }
+    });
 
     // Add event listener for Post New Job button
     const postJobButton = document.getElementById('btn-post-job');
@@ -957,6 +972,8 @@ const loadFeed = () => {
         postJobModal.show();
     });
 };
+
+
 // Post Job button event listener
 document.getElementById('post-job-btn').addEventListener('click', () => {
     const modal = bootstrap.Modal.getInstance(document.getElementById('post-job-modal'));
