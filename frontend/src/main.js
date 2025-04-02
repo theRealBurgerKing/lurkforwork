@@ -245,7 +245,6 @@ function sendUpdateRequest(updatedData) {
             removeModalBackdrop();
             showErrorModal('Profile updated successfully! Reloading profile...');
             editButton.focus();
-            //reloadCurrentPage(); //Refresh profile
             loadUserProfile(myId,true);
         })
         .catch((error) => {
@@ -272,7 +271,7 @@ const showPage = (pageName, targetUserId = null) => {
     if (pageName === 'other-profile' && targetUserId) {
         loadUserProfile(targetUserId, false); // Load other user's profile
     }
-    // 当离开 feed 页面时，执行清理
+    // doing cleanupFeed when leaving
     return () => {
         if (cleanupFeed) cleanupFeed();
     };
@@ -338,7 +337,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
             .then(() => {
                 likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
                 showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
-                //reloadCurrentPage(targetUserId);
             })
             .catch(error => showErrorModal('Error: ' + error));
     });
@@ -353,46 +351,45 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     showLikesButton.addEventListener('click', () => {
         const jobData = jobsArray[index];
         const likes = jobData.likes || [];
-        if (likesListDiv.style.display === 'none') {
-            likesListDiv.innerHTML = '';
-            const likesHeader = document.createElement('strong');
-            likesHeader.textContent = 'Users who liked this job:';
-            likesListDiv.appendChild(likesHeader);
-            const likesList = document.createElement('ul');
-            if (likes.length === 0) {
-                const noLikesItem = document.createElement('li');
-                noLikesItem.textContent = 'No likes yet.';
-                likesList.appendChild(noLikesItem);
-            } else {
-                Promise.all(
-                    likes.map(like => createUserLinkWithAvatar(like.userId))
-                ).then(likeUserElements => {
-                    likeUserElements.forEach(likeUserElement => {
-                        likesList.appendChild(likeUserElement);
-                    });
-                }).catch(error => {
-                    showErrorModal('Error loading likes: ' + error);
-                });
-            }
-            likesListDiv.appendChild(likesList);
-            likesListDiv.style.display = 'block';
-            showLikesButton.textContent = 'Hide Likes';
+        // showModal
+        removeModalBackdrop();
+        const likesModal = new bootstrap.Modal(document.getElementById('likes-modal'));
+        const modalBody = document.getElementById('likes-modal-body');
+        modalBody.innerHTML = '';
+
+        if (likes.length === 0) {
+            const noLikesText = document.createElement('p');
+            noLikesText.textContent = 'No likes yet.';
+            modalBody.appendChild(noLikesText);
         } else {
-            likesListDiv.style.display = 'none';
-            showLikesButton.textContent = 'Show Likes';
+            const likesList = document.createElement('ul');
+            Promise.all(
+                likes.map(like => createUserLinkWithAvatar(like.userId))
+            ).then(likeUserElements => {
+                likeUserElements.forEach(likeUserElement => {
+                    likesList.appendChild(likeUserElement);
+                    // add eventlistener to each username-hyperlink
+                    const userLink = likeUserElement.querySelector('a');
+                    if (userLink) {
+                        userLink.addEventListener('click', () => {
+                            likesModal.hide();
+                            removeModalBackdrop();
+                        });
+                    }
+                });
+                modalBody.appendChild(likesList);
+            }).catch(error => {
+                showErrorModal('Error loading likes: ' + error);
+                const errorText = document.createElement('p');
+                errorText.textContent = 'Failed to load likes.';
+                modalBody.appendChild(errorText);
+            });
         }
+
+        likesModal.show();
     });
     likesP.appendChild(showLikesButton);
-    
-
-    
-
     jobContainer.appendChild(likesP);
-    // Likes list (hidden by default)
-    const likesListDiv = document.createElement('div');
-    likesListDiv.className = 'likes-list';
-    likesListDiv.style.display = 'none';
-    jobContainer.appendChild(likesListDiv);
     // Description
     const descriptionP = document.createElement('p');
     const descriptionStrong = document.createElement('strong');
@@ -444,7 +441,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                     commentModal.hide();
                     removeModalBackdrop();
                     showErrorModal('Comment posted successfully! Refreshing page...');
-                    //reloadCurrentPage(targetUserId);
                 })
                 .catch(error => {
                     commentModal.hide();
@@ -490,7 +486,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                 apiCall('job', 'DELETE', { id: job.id })
                     .then(() => {
                         showErrorModal('Job deleted successfully! Refreshing profile...');
-                        //reloadCurrentPage(targetUserId);
                     })
                     .catch(error => {
                         showErrorModal('Error deleting job: ' + error);
@@ -590,7 +585,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                             updateJobModal.hide();
                             removeModalBackdrop();
                             showErrorModal('Job updated successfully! Refreshing page...');
-                            //reloadCurrentPage(targetUserId);
                         })
                         .catch((error) => {
                             updateJobModal.hide();
@@ -795,7 +789,6 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
                 apiCall('user/watch', 'PUT', { id: userId, turnon })
                     .then(() => {
                         showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
-                        //reloadCurrentPage(userId);
                         loadUserProfile(userId, false);
                     })
                     .catch(error => {
@@ -906,28 +899,30 @@ const loadFeed = () => {
                 });
         });
     };
-    // 更新页面显示的职位
+    // update feed
     const updateFeed = (jobs) => {
         const sortedJobs = jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const currentJobElements = feedContent.querySelectorAll('.job-post');
         const currentJobIds = Array.from(currentJobElements).map(el => el.querySelector('.like-job').dataset.jobId);
 
-        // 清空现有内容并重新渲染
+        // clear the content
         feedContent.innerHTML = '';
-        jobIds = []; // 重置 jobIds
+        jobIds = []; // reset jobIds
         sortedJobs.forEach((job, index) => {
             jobIds.push(job.id);
             const jobElement = showJobElement(job, index, sortedJobs);
             feedContent.appendChild(jobElement);
         });
 
-        // 如果还有更多数据，添加底部提示
+        // add hint according to the hasMoreData
+        const bottomPadding = document.createElement('div');
+        bottomPadding.className = 'bottom-padding';
         if (hasMoreData) {
-            const bottomPadding = document.createElement('div');
-            bottomPadding.className = 'bottom-padding';
             bottomPadding.innerText = "Scroll to load more...";
-            feedContent.appendChild(bottomPadding); // 注意：这里应该是 bottomPadding
+        } else {
+            bottomPadding.innerText = "-------No more items-------";
         }
+        feedContent.appendChild(bottomPadding);
     };
 
     //polling
@@ -945,6 +940,7 @@ const loadFeed = () => {
                     } else {
                         //output when there is no more reasult
                         console.log('Feed polling result:', allJobs);
+                        hasMoreData = allJobs.length > 0 && currentStart > jobIds.length;
                         updateFeed(allJobs);
                     }
                 })
@@ -1009,16 +1005,15 @@ const loadFeed = () => {
         postJobModal.show();
     });
 
-    // 清理函数：当离开 feed 页面时停止轮询
+    // stop polling when leaving the feed page
     const cleanup = () => {
         if (pollingInterval) {
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
-        window.removeEventListener('scroll', loadJobs); // 清理滚动事件（可选）
+        window.removeEventListener('scroll', loadJobs); // remove scroll event listener
     };
 
-    // 返回清理函数，以便在页面切换时调用
     return cleanup;
 };
 
@@ -1124,7 +1119,6 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
             modal.hide();
             removeModalBackdrop();
             showErrorModal('User watched successfully!');
-            //reloadCurrentPage();
 
         })
         .catch(error => {
