@@ -6,31 +6,6 @@ let saveProfileHandler = null;
 let jobIds = [];
 let myId = null;
 let userCache = {};
-// reload current page
-const reloadCurrentPage = (targetUserId = null) => {
-    const pages = document.querySelectorAll('.page');
-    let currentPage = null;
-    for (const page of pages) {
-        if (!page.classList.contains('hide')) {
-            currentPage = page.id;
-            break;
-        }
-    }
-
-    if (currentPage === 'page-feed') {
-        loadFeed();
-    } else if (currentPage === 'page-profile') {
-        loadUserProfile(myId, true);
-    } else if (currentPage === 'page-other-profile') {
-        if (targetUserId) {
-            loadUserProfile(targetUserId, false);
-        } else {
-            showErrorModal('Target user ID not found for other-profile page.');
-        }
-    } else {
-        showErrorModal('Unable to determine current page or target user ID.');
-    }
-};
 
 // Generate a link element with an avatar and username
 const createUserLinkWithAvatar = (userId, additionalText = '') => {
@@ -270,7 +245,8 @@ function sendUpdateRequest(updatedData) {
             removeModalBackdrop();
             showErrorModal('Profile updated successfully! Reloading profile...');
             editButton.focus();
-            reloadCurrentPage(); //Refresh profile
+            //reloadCurrentPage(); //Refresh profile
+            loadUserProfile(myId,true);
         })
         .catch((error) => {
             modal.hide();
@@ -282,12 +258,13 @@ function sendUpdateRequest(updatedData) {
 //show page named [pageName] and hide other
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
+    let cleanupFeed = null;
     for (const page of pages) {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
     if (pageName === 'feed') {
-        loadFeed();
+        cleanupFeed = loadFeed();
     }
     if (pageName === 'profile') {
         loadUserProfile(myId, true); // Load own profile
@@ -295,6 +272,10 @@ const showPage = (pageName, targetUserId = null) => {
     if (pageName === 'other-profile' && targetUserId) {
         loadUserProfile(targetUserId, false); // Load other user's profile
     }
+    // 当离开 feed 页面时，执行清理
+    return () => {
+        if (cleanupFeed) cleanupFeed();
+    };
 };
 
 // show Jobs and add interact
@@ -357,7 +338,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
             .then(() => {
                 likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
                 showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
-                reloadCurrentPage(targetUserId);
+                //reloadCurrentPage(targetUserId);
             })
             .catch(error => showErrorModal('Error: ' + error));
     });
@@ -463,7 +444,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                     commentModal.hide();
                     removeModalBackdrop();
                     showErrorModal('Comment posted successfully! Refreshing page...');
-                    reloadCurrentPage(targetUserId);
+                    //reloadCurrentPage(targetUserId);
                 })
                 .catch(error => {
                     commentModal.hide();
@@ -509,7 +490,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                 apiCall('job', 'DELETE', { id: job.id })
                     .then(() => {
                         showErrorModal('Job deleted successfully! Refreshing profile...');
-                        reloadCurrentPage(targetUserId);
+                        //reloadCurrentPage(targetUserId);
                     })
                     .catch(error => {
                         showErrorModal('Error deleting job: ' + error);
@@ -609,7 +590,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                             updateJobModal.hide();
                             removeModalBackdrop();
                             showErrorModal('Job updated successfully! Refreshing page...');
-                            reloadCurrentPage(targetUserId);
+                            //reloadCurrentPage(targetUserId);
                         })
                         .catch((error) => {
                             updateJobModal.hide();
@@ -814,7 +795,8 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
                 apiCall('user/watch', 'PUT', { id: userId, turnon })
                     .then(() => {
                         showErrorModal(`${turnon ? 'Watched' : 'Unwatched'} successfully! Reloading profile...`);
-                        reloadCurrentPage(userId);
+                        //reloadCurrentPage(userId);
+                        loadUserProfile(userId, false);
                     })
                     .catch(error => {
                         showErrorModal('Error: ' + error);
@@ -883,6 +865,7 @@ const loadFeed = () => {
     let hasMoreData = true;
     let lastScrollTime = 0;
     const throttleDelay = 200; // throttle delay
+    let pollingInterval = null;
 
     // load jobs for a given startindex
     const loadJobs = (startIndex) => {
@@ -923,9 +906,63 @@ const loadFeed = () => {
                 });
         });
     };
+    // 更新页面显示的职位
+    const updateFeed = (jobs) => {
+        const sortedJobs = jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const currentJobElements = feedContent.querySelectorAll('.job-post');
+        const currentJobIds = Array.from(currentJobElements).map(el => el.querySelector('.like-job').dataset.jobId);
+
+        // 清空现有内容并重新渲染
+        feedContent.innerHTML = '';
+        jobIds = []; // 重置 jobIds
+        sortedJobs.forEach((job, index) => {
+            jobIds.push(job.id);
+            const jobElement = showJobElement(job, index, sortedJobs);
+            feedContent.appendChild(jobElement);
+        });
+
+        // 如果还有更多数据，添加底部提示
+        if (hasMoreData) {
+            const bottomPadding = document.createElement('div');
+            bottomPadding.className = 'bottom-padding';
+            bottomPadding.innerText = "Scroll to load more...";
+            feedContent.appendChild(bottomPadding); // 注意：这里应该是 bottomPadding
+        }
+    };
+
+    //polling
+    const pollFeed = () => {
+        let currentStart = 0;
+        const allJobs = [];
+
+        const fetchNextPage = () => {
+            apiCall(`job/feed?start=${currentStart}`, 'GET', {})
+                .then((data) => {
+                    if (data.length > 0) {
+                        allJobs.push(...data);
+                        currentStart += data.length;
+                        fetchNextPage();
+                    } else {
+                        //output when there is no more reasult
+                        console.log('Feed polling result:', allJobs);
+                        updateFeed(allJobs);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error polling feed:', error);
+                });
+        };
+
+        // start from start = 0
+        fetchNextPage();
+    };
+
 
     // Load the first page
     loadJobs(start);
+
+    // start polling every 5 sec
+    pollingInterval = setInterval(pollFeed, 5000);
 
     // Add scroll event listener
     window.addEventListener('scroll', () => {
@@ -971,6 +1008,18 @@ const loadFeed = () => {
         document.getElementById('job-image').value = '';
         postJobModal.show();
     });
+
+    // 清理函数：当离开 feed 页面时停止轮询
+    const cleanup = () => {
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+        window.removeEventListener('scroll', loadJobs); // 清理滚动事件（可选）
+    };
+
+    // 返回清理函数，以便在页面切换时调用
+    return cleanup;
 };
 
 
@@ -1075,7 +1124,8 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
             modal.hide();
             removeModalBackdrop();
             showErrorModal('User watched successfully!');
-            reloadCurrentPage();
+            //reloadCurrentPage();
+
         })
         .catch(error => {
             modal.hide();
