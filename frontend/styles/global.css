@@ -239,8 +239,19 @@ html, body {
     margin-top: 10vh;
 }
 
+.show-likes-btn{
+    margin-left: 40px;
+    width:160px;
+}
 
+.like-job{
+    width:100px;
+}
 
+/* Bottom padding to ensure space at the end of feed-content */
+.bottom-padding {
+    height: 100px;
+}
 
 .comments ul li {
     margin-bottom: 10px;

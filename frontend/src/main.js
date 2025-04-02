@@ -867,9 +867,9 @@ const loadFeed = () => {
 
     const feedContent = document.getElementById('feed-content');
     feedContent.innerHTML = ''; // Clear existing content
-    jobIds = [];
+    jobIds = []; // Reset job IDs
 
-    let start = 0; // start index
+    let start = 0; // Track the current page (start index)
     let isLoading = false; // Prevent multiple simultaneous requests
     let hasMoreData = true; // Track if there is more data to load
     let lastScrollTime = 0; // For throttling
@@ -889,18 +889,25 @@ const loadFeed = () => {
             .then((data) => {
                 loadingIndicator.remove();
                 const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                // If no more data is returned, stop further loading
+                
+                // If no more data is returned, stop further loading and add bottom padding
                 if (sortedJobs.length === 0) {
                     hasMoreData = false;
                     isLoading = false;
+                    // Add a bottom padding element
+                    const bottomPadding = document.createElement('div');
+                    bottomPadding.className = 'bottom-padding';
+                    feedContent.appendChild(bottomPadding);
                     return;
                 }
+
                 // Append new jobs to feed-content
                 sortedJobs.forEach((job, index) => {
                     jobIds.push(job.id);
                     const jobElement = showJobElement(job, index, sortedJobs);
                     feedContent.appendChild(jobElement);
                 });
+
                 isLoading = false;
                 start += sortedJobs.length; // Update start index for the next page
             })
@@ -910,15 +917,16 @@ const loadFeed = () => {
                 isLoading = false;
             });
     };
+
     // Load the first page
     loadJobs(start);
+
     // Add scroll event listener for infinite scrolling with throttling
     const handleScroll = () => {
         const now = Date.now();
         if (now - lastScrollTime < throttleDelay) return; // Throttle the scroll event
         lastScrollTime = now;
 
-        // Calculate the total scrollable height and current position
         const scrollHeight = document.documentElement.scrollHeight; // Total height of the document
         const scrollTop = window.scrollY || window.pageYOffset; // Current scroll position
         const clientHeight = window.innerHeight; // Viewport height
