@@ -362,7 +362,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     });
     likesP.appendChild(likeButton);
     // Likes Count Text
-    likesP.appendChild(document.createTextNode(` ${likesCount}`));
+    likesP.appendChild(document.createTextNode(` ${likesCount} `));
     // Show Likes Button
     const showLikesButton = document.createElement('button');
     showLikesButton.textContent = 'Show Likes';
@@ -860,22 +860,82 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
 
 
 
-//feed page
+// feed page
 const loadFeed = () => {
     document.getElementById("btn-profile").style.display = "block";
     document.getElementById("btn-search").style.display = "block";
-    apiCall('job/feed?start=0', 'GET', {}).then((data) => {
-        const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        const feedContent = document.getElementById('feed-content');
-        jobIds = [];
-        feedContent.innerHTML = '';
 
-        sortedJobs.forEach((job, index) => {
-            jobIds.push(job.id);
-            const jobElement = showJobElement(job, index, sortedJobs);
-            feedContent.appendChild(jobElement);
-        });
-    }).catch((error) => showErrorModal(error));
+    const feedContent = document.getElementById('feed-content');
+    feedContent.innerHTML = ''; // Clear existing content
+    jobIds = [];
+
+    let start = 0; // start index
+    let isLoading = false; // Prevent multiple simultaneous requests
+    let hasMoreData = true; // Track if there is more data to load
+    let lastScrollTime = 0; // For throttling
+    const throttleDelay = 200; // 200ms throttle delay
+
+    // Function to load jobs for a given start index
+    const loadJobs = (startIndex) => {
+        if (isLoading || !hasMoreData) return; // Prevent loading if already loading or no more data
+
+        isLoading = true;
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.textContent = 'Loading...';
+        loadingIndicator.className = 'loading-indicator';
+        feedContent.appendChild(loadingIndicator);
+
+        apiCall(`job/feed?start=${startIndex}`, 'GET', {})
+            .then((data) => {
+                loadingIndicator.remove();
+                const sortedJobs = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                // If no more data is returned, stop further loading
+                if (sortedJobs.length === 0) {
+                    hasMoreData = false;
+                    isLoading = false;
+                    return;
+                }
+                // Append new jobs to feed-content
+                sortedJobs.forEach((job, index) => {
+                    jobIds.push(job.id);
+                    const jobElement = showJobElement(job, index, sortedJobs);
+                    feedContent.appendChild(jobElement);
+                });
+                isLoading = false;
+                start += sortedJobs.length; // Update start index for the next page
+            })
+            .catch((error) => {
+                loadingIndicator.remove();
+                showErrorModal(error);
+                isLoading = false;
+            });
+    };
+    // Load the first page
+    loadJobs(start);
+    // Add scroll event listener for infinite scrolling with throttling
+    const handleScroll = () => {
+        const now = Date.now();
+        if (now - lastScrollTime < throttleDelay) return; // Throttle the scroll event
+        lastScrollTime = now;
+
+        // Calculate the total scrollable height and current position
+        const scrollHeight = document.documentElement.scrollHeight; // Total height of the document
+        const scrollTop = window.scrollY || window.pageYOffset; // Current scroll position
+        const clientHeight = window.innerHeight; // Viewport height
+
+        // Check if user is near the bottom of the page
+        if (
+            scrollTop + clientHeight >= scrollHeight - 200 && // 200px threshold
+            !isLoading &&
+            hasMoreData
+        ) {
+            loadJobs(start);
+        }
+    };
+
+    // Add scroll event listener
+    window.addEventListener('scroll', handleScroll);
+
     // Add event listener for Post New Job button
     const postJobButton = document.getElementById('btn-post-job');
     postJobButton.addEventListener('click', () => {
