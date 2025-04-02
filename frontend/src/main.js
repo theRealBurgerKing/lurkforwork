@@ -32,55 +32,54 @@ const reloadCurrentPage = (targetUserId = null) => {
     }
 };
 
-//Generate a link element with an avatar and username
-const createUserLinkWithAvatar = async (userId, additionalText = '') => {
+// Generate a link element with an avatar and username
+const createUserLinkWithAvatar = (userId, additionalText = '') => {
     const listItem = document.createElement('li');
     listItem.style.display = 'flex';
     listItem.style.alignItems = 'center';
 
-    try {
-        // gain userinfo
-        const userInfo = await getUserInfo(userId);
+    return getUserInfo(userId)
+        .then(userInfo => {
+            // add avatar
+            if (userInfo.image) {
+                const img = document.createElement('img');
+                img.src = userInfo.image;
+                img.alt = `${userInfo.name}'s profile picture`;
+                img.className = 'rounded-circle little-profile-pic';
+                listItem.appendChild(img);
+            } else {
+                // no avatar: generate placeholder box
+                const placeholder = document.createElement('div');
+                placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
+                placeholder.textContent = userInfo.name.charAt(0).toUpperCase();
+                listItem.appendChild(placeholder);
+            }
 
-        // add avatar
-        if (userInfo.image) {
-            const img = document.createElement('img');
-            img.src = userInfo.image;
-            img.alt = `${userInfo.name}'s profile picture`;
-            img.className = 'rounded-circle little-profile-pic';
-            listItem.appendChild(img);
-        } else {
-            // no avatar: generate placeholder box
-            const placeholder = document.createElement('div');
-            placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
-            placeholder.textContent = userInfo.name.charAt(0).toUpperCase();
-            listItem.appendChild(placeholder);
-        }
+            // add name and hyperlink
+            const contentSpan = document.createElement('span');
+            const userLink = document.createElement('a');
+            userLink.href = '#';
+            userLink.dataset.userId = userId;
+            userLink.textContent = userInfo.name;
+            userLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage('other-profile', userId);
+            });
+            contentSpan.appendChild(userLink);
 
-        // add name and hyperlink
-        const contentSpan = document.createElement('span');
-        const userLink = document.createElement('a');
-        userLink.href = '#';
-        userLink.dataset.userId = userId;
-        userLink.textContent = userInfo.name;
-        userLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            showPage('other-profile', userId);
+            // append additional text behind (for comments)
+            if (additionalText) {
+                contentSpan.appendChild(document.createTextNode(`: ${additionalText}`));
+            }
+
+            listItem.appendChild(contentSpan);
+            return listItem;
+        })
+        .catch(error => {
+            showErrorModal(`Error loading user info for userId ${userId}: ${error}`);
+            listItem.textContent = `User ID: ${userId}${additionalText ? `: ${additionalText}` : ''}`;
+            return listItem;
         });
-        contentSpan.appendChild(userLink);
-
-        // append additional text behind (for comments)
-        if (additionalText) {
-            contentSpan.appendChild(document.createTextNode(`: ${additionalText}`));
-        }
-
-        listItem.appendChild(contentSpan);
-        return listItem;
-    } catch (error) {
-        showErrorModal(`Error loading user info for userId ${userId}: ${error}`);
-        listItem.textContent = `User ID: ${userId}${additionalText ? `: ${additionalText}` : ''}`;
-        return listItem;
-    }
 };
 
 
@@ -106,26 +105,28 @@ function removeModalBackdrop() {
     document.body.style.paddingRight = '';
 }
 
-const getUserInfo = async (userId) => {
+const getUserInfo = (userId) => {
     // If userId is in cache, directly return cached data
     if (userCache[userId]) {
-        return userCache[userId];
+        return Promise.resolve(userCache[userId]);
     }
 
-    try {
-        const userData = await apiCall(`user?userId=${userId}`, 'GET', {});
-        userCache[userId] = {
-            name: userData.name,
-            image: userData.image
-        }; // cache the name and image of users
-        return userCache[userId];
-    } catch (error) {
-        console.error(`Error fetching user info for userId ${userId}:`, error);
-        return {
-            name: `User ID: ${userId}`,
-            image: null
-        };
-    }
+    //else return the apiCall to gain data
+    return apiCall(`user?userId=${userId}`, 'GET', {})
+        .then(userData => {
+            userCache[userId] = {
+                name: userData.name,
+                image: userData.image
+            }; // cache the name and image of users
+            return userCache[userId];
+        })
+        .catch(error => {
+            console.error(`Error fetching user info for userId ${userId}:`, error);
+            return {
+                name: `User ID: ${userId}`,
+                image: null
+            };
+        });
 };
 //send request to backend
 function apiCall(path, method, data) {
