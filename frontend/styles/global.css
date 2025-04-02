@@ -248,9 +248,19 @@ html, body {
     width:100px;
 }
 
-/* Bottom padding to ensure space at the end of feed-content */
+.loading-indicator {
+    text-align: center;
+    padding: 20px;
+    font-size: 18px;
+    color: #666;
+}
+
+
 .bottom-padding {
     height: 100px;
+    padding-top: 20px;
+    display: flex;
+    justify-content: center;
 }
 
 .comments ul li {
