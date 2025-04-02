@@ -297,7 +297,7 @@ const showPage = (pageName, targetUserId = null) => {
 };
 
 // show Jobs and add interact
-const createJobElement = (job, index, jobsArray,targetUserId = null) => {
+const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     const jobContainer = document.createElement('div');
     jobContainer.className = 'job-post';
     // Title
@@ -445,7 +445,7 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
         const newSubmitButton = submitCommentButton.cloneNode(true);
         submitCommentButton.parentNode.replaceChild(newSubmitButton, submitCommentButton);
         newSubmitButton.addEventListener('click', () => {
-            const commentText = commentTextArea.value.trim();
+            const commentText = commentTextArea.value;
             if (!commentText) {
                 commentModal.hide();
                 showErrorModal('Please enter a comment.');
@@ -561,9 +561,9 @@ const createJobElement = (job, index, jobsArray,targetUserId = null) => {
             const newSaveButton = saveButton.cloneNode(true);
             saveButton.parentNode.replaceChild(newSaveButton, saveButton);
             newSaveButton.addEventListener('click', () => {
-                const title = document.getElementById('update-job-title').value.trim();
-                const startDate = document.getElementById('update-job-start-date').value.trim();
-                const description = document.getElementById('update-job-description').value.trim();
+                const title = document.getElementById('update-job-title').value;
+                const startDate = document.getElementById('update-job-start-date').value;
+                const description = document.getElementById('update-job-description').value;
                 const imageFile = document.getElementById('update-job-image').files[0];
                 if (!title || !startDate || !description) {
                     updateJobModal.hide();
@@ -845,7 +845,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
 
         if (data.jobs && data.jobs.length > 0) {
             data.jobs.forEach((job, index) => {
-                const jobElement = createJobElement(job, index, data.jobs, isOwnProfile ? null : userId);
+                const jobElement = showJobElement(job, index, data.jobs, isOwnProfile ? null : userId);
                 profileContent.appendChild(jobElement);
             });
         } else {
@@ -872,7 +872,7 @@ const loadFeed = () => {
 
         sortedJobs.forEach((job, index) => {
             jobIds.push(job.id);
-            const jobElement = createJobElement(job, index, sortedJobs);
+            const jobElement = showJobElement(job, index, sortedJobs);
             feedContent.appendChild(jobElement);
         });
     }).catch((error) => showErrorModal(error));
@@ -892,9 +892,9 @@ const loadFeed = () => {
 // Post Job button event listener
 document.getElementById('post-job-btn').addEventListener('click', () => {
     const modal = bootstrap.Modal.getInstance(document.getElementById('post-job-modal'));
-    const title = document.getElementById('job-title').value.trim();
-    const startDate = document.getElementById('job-start-date').value.trim();
-    const description = document.getElementById('job-description').value.trim();
+    const title = document.getElementById('job-title').value;
+    const startDate = document.getElementById('job-start-date').value;
+    const description = document.getElementById('job-description').value;
     const imageFile = document.getElementById('job-image').files[0];
     
     // Validate required fields
@@ -922,6 +922,15 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
         showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
         return;
     }
+    // Check if the start date is earlier than today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsedDate < today) {
+        modal.hide();
+        showErrorModal('Start Date cannot be earlier than today.');
+        return;
+    }
+
     // Format the date to YYYY-MM-DD for the API
     const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     // Prepare the job data
@@ -937,7 +946,7 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
                 modal.hide();
                 removeModalBackdrop();
                 showErrorModal('Job posted successfully! Refreshing feed...');
-                loadFeed(); // Refresh the feed to show the new job
+                loadFeed();
             })
             .catch((error) => {
                 modal.hide();
@@ -968,7 +977,7 @@ document.getElementById('btn-search').addEventListener('click', () => {
 
 // Watch user by email event listener
 document.getElementById('search-watch-btn').addEventListener('click', () => {
-    const email = document.getElementById('search-email').value.trim();
+    const email = document.getElementById('search-email').value;
     const modal = bootstrap.Modal.getInstance(document.getElementById('search-modal'));
     if (!email) {
         modal.hide();

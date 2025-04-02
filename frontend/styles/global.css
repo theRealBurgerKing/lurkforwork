@@ -346,3 +346,13 @@ html, body {
 #comment-modal textarea {
     resize: vertical;
 }
+
+/* Ensure error-modal appears on top of other modals */
+#error-modal {
+    z-index: 1060;
+}
+
+/* Ensure the backdrop of error-modal also has a higher z-index */
+#error-modal + .modal-backdrop {
+    z-index: 1055;
+}
