@@ -660,9 +660,12 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         jobsHeader.textContent = 'Created Jobs:';
         jobsSection.appendChild(jobsHeader);
 
-        if (jobs && jobs.length > 0) {
-            jobs.forEach((job, index) => {
-                const jobElement = showJobElement(job, index, jobs, targetUserId);
+        // Sort by descending order of createdAt
+        const sortedJobs = jobs ? [...jobs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
+
+        if (sortedJobs && sortedJobs.length > 0) {
+            sortedJobs.forEach((job, index) => {
+                const jobElement = showJobElement(job, index, sortedJobs, targetUserId);
                 jobsSection.appendChild(jobElement);
             });
         } else {
@@ -670,6 +673,12 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
             noJobs.textContent = 'No jobs created yet.';
             jobsSection.appendChild(noJobs);
         }
+
+        // adding bottom-padding
+        const bottomPadding = document.createElement('div');
+        bottomPadding.className = 'bottom-padding';
+        bottomPadding.innerText = "-------No more items-------";
+        jobsSection.appendChild(bottomPadding);
 
         // add to container if first time load
         if (!container.contains(jobsSection)) {
@@ -860,31 +869,15 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         }
         watchersSection.appendChild(watchersList);
         profileContent.appendChild(watchersSection);
-
-        // Jobs
-        const jobsHeader = document.createElement('h3');
-        jobsHeader.textContent = 'Created Jobs:';
-        profileContent.appendChild(jobsHeader);
         
-        // 初次加载 Jobs
+        // first-time load Jobs
         updateJobs(data.jobs, profileContent, isOwnProfile ? null : userId);
 
-        // 启动轮询，每 5 秒更新 Jobs
+        // polling every 5 sec
         pollingInterval = setInterval(pollProfile, 5000);
-        if (data.jobs && data.jobs.length > 0) {
-            data.jobs.forEach((job, index) => {
-                const jobElement = showJobElement(job, index, data.jobs, isOwnProfile ? null : userId);
-                profileContent.appendChild(jobElement);
-            });
-        } else {
-            const noJobs = document.createElement('p');
-            noJobs.textContent = 'No jobs created yet.';
-            profileContent.appendChild(noJobs);
-        }
     }).catch((error) => {
         showErrorModal(error);
     });
-    // 清理函数
     const cleanup = () => {
         if (pollingInterval) {
             clearInterval(pollingInterval);
