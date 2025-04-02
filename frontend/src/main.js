@@ -157,10 +157,30 @@ document.getElementById('btn-register').addEventListener('click', () => {
     const name = document.getElementById('register-name').value;
     const password = document.getElementById('register-password1').value;
     const passwordConfirm = document.getElementById('register-password2').value;
+    
+    // Check if any field is empty
+    if (!email) {
+        showErrorModal("Email cannot be empty");
+        return;
+    }
+    if (!name) {
+        showErrorModal("Name cannot be empty");
+        return;
+    }
+    if (!password) {
+        showErrorModal("Password cannot be empty");
+        return;
+    }
+    if (!passwordConfirm) {
+        showErrorModal("Password confirmation cannot be empty");
+        return;
+    }
+    // Check if passwords match
     if (password !== passwordConfirm) {
         showErrorModal("Passwords don't match");
         return;
     }
+
     apiCall(
         'auth/register',
         'POST',
@@ -183,6 +203,15 @@ document.getElementById('btn-register').addEventListener('click', () => {
 document.getElementById('btn-login').addEventListener('click', () => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password1').value;
+    // Check if any field is empty
+    if (!email) {
+        showErrorModal("Email cannot be empty");
+        return;
+    }
+    if (!password) {
+        showErrorModal("Password cannot be empty");
+        return;
+    }
     apiCall(
         'auth/login',
         'POST',
