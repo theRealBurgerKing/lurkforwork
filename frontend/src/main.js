@@ -301,7 +301,6 @@ const showPage = (pageName, targetUserId = null) => {
 const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     const jobContainer = document.createElement('div');
     jobContainer.className = 'job-post';
-    jobContainer.dataset.jobId = job.id;
     // Title
     const title = document.createElement('h1');
     title.textContent = job.title;
@@ -358,18 +357,13 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
             .then(() => {
                 likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
                 showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully! Refresh to see updates.`);
-                //reloadCurrentPage(targetUserId);
-                ifLiked = newIfLiked;
+                reloadCurrentPage(targetUserId);
             })
             .catch(error => showErrorModal('Error: ' + error));
     });
     likesP.appendChild(likeButton);
     // Likes Count Text
-    const likesCountSpan = document.createElement('span');
-    likesCountSpan.className = 'likes-count';
-    likesCountSpan.textContent = ` ${likesCount} `;
-    likesP.appendChild(likesCountSpan);
-
+    likesP.appendChild(document.createTextNode(` ${likesCount} `));
     // Show Likes Button
     const showLikesButton = document.createElement('button');
     showLikesButton.textContent = 'Show Likes';
@@ -433,12 +427,8 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     const commentsCountStrong = document.createElement('strong');
     commentsCountStrong.textContent = 'Comments: ';
     commentsCountP.appendChild(commentsCountStrong);
-    //commentsCountP.appendChild(document.createTextNode(commentsCount));
-    // Comments Count Text
-    const commentsCountSpan = document.createElement('span');
-    commentsCountSpan.className = 'comments-count';
-    commentsCountSpan.textContent = commentsCount;
-    commentsCountP.appendChild(commentsCountSpan);
+    commentsCountP.appendChild(document.createTextNode(commentsCount));
+    
 
     // Comment Button
     const commentButton = document.createElement('button');
@@ -473,7 +463,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                     commentModal.hide();
                     removeModalBackdrop();
                     showErrorModal('Comment posted successfully! Refreshing page...');
-                    //reloadCurrentPage(targetUserId);
+                    reloadCurrentPage(targetUserId);
                 })
                 .catch(error => {
                     commentModal.hide();
@@ -893,13 +883,12 @@ const loadFeed = () => {
     let hasMoreData = true;
     let lastScrollTime = 0;
     const throttleDelay = 200; // throttle delay
-    let pollingInterval = null; // polling interval ID
 
     // load jobs for a given startindex
     const loadJobs = (startIndex) => {
         return new Promise((resolve, reject) => {
-            if (isLoading || !hasMoreData) { // Resolve immediately if already loading or no more data
-                resolve();
+            if (isLoading || !hasMoreData) {
+                resolve(); // Resolve immediately if already loading or no more data
                 return;
             }
             isLoading = true;
@@ -910,6 +899,7 @@ const loadFeed = () => {
                     if (sortedJobs.length === 0) {
                         hasMoreData = false;
                         isLoading = false;
+                        // Add a bottom padding element
                         const bottomPadding = document.createElement('div');
                         bottomPadding.className = 'bottom-padding';
                         bottomPadding.innerText = "-------No more items-------"
@@ -937,55 +927,6 @@ const loadFeed = () => {
     // Load the first page
     loadJobs(start);
 
-
-    // Start polling for live updates
-    const startPolling = () => {
-        pollingInterval = setInterval(() => {
-            // Get all job posts currently on the page
-            const jobPosts = document.querySelectorAll('.job-post');
-            if (jobPosts.length === 0) return; // No jobs to update
-
-            // Fetch updated data for all visible jobs
-            const jobIdsToUpdate = Array.from(jobPosts).map(post => post.dataset.jobId);
-            jobIdsToUpdate.forEach(jobId => {
-                apiCall(`job?jobId=${jobId}`, 'GET', {})
-                    .then(jobData => {
-                        // Find the job post in the DOM
-                        const jobPost = document.querySelector(`.job-post[data-job-id="${jobId}"]`);
-                        if (!jobPost) return;
-
-                        // Update likes count
-                        const likesCountSpan = jobPost.querySelector('.likes-count');
-                        const newLikesCount = jobData.likes ? jobData.likes.length : 0;
-                        if (likesCountSpan && parseInt(likesCountSpan.textContent) !== newLikesCount) {
-                            likesCountSpan.textContent = ` ${newLikesCount} `;
-                        }
-
-                        // Update comments count
-                        const commentsCountSpan = jobPost.querySelector('.comments-count');
-                        const newCommentsCount = jobData.comments ? jobData.comments.length : 0;
-                        if (commentsCountSpan && parseInt(commentsCountSpan.textContent) !== newCommentsCount) {
-                            commentsCountSpan.textContent = newCommentsCount;
-                        }
-                    })
-                    .catch(error => {
-                        console.error(`Error polling job ${jobId}:`, error);
-                   
-            });
-        }, 5000); // Poll every 5 seconds
-    });
-
-    // Stop polling when leaving the page
-    const stopPolling = () => {
-        if (pollingInterval) {
-            clearInterval(pollingInterval);
-            pollingInterval = null;
-        }
-    };
-
-    // Start polling
-    startPolling();
-    
     // Add scroll event listener
     window.addEventListener('scroll', () => {
         const now = Date.now();
