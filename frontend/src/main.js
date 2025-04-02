@@ -3,7 +3,6 @@ import { BACKEND_PORT } from './config.js';
 import { fileToDataUrl } from './helpers.js';
 
 let saveProfileHandler = null;
-let jobIds = [];
 let myId = null;
 let userCache = {};
 
@@ -253,15 +252,22 @@ function sendUpdateRequest(updatedData) {
             showErrorModal('Failed to update: '+error);
         })
 };
-
+let currentCleanup = null;
 //show page named [pageName] and hide other
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
-    let cleanupFunc = null;
+
+    // 执行上一次的清理
+    if (currentCleanup) {
+        console.log(`Cleaning up before switching to ${pageName}`);
+        currentCleanup();
+    }
     for (const page of pages) {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
+
+    let cleanupFunc = null;
     if (pageName === 'feed') {
         cleanupFunc = loadFeed();
     }
@@ -271,10 +277,7 @@ const showPage = (pageName, targetUserId = null) => {
     if (pageName === 'other-profile' && targetUserId) {
         cleanupFunc = loadUserProfile(targetUserId, false); // Load other user's profile
     }
-    // doing cleanupFeed when leaving
-    return () => {
-        if (cleanupFunc) cleanupFunc();
-    };
+    currentCleanup = cleanupFunc;
 };
 
 // show Jobs and add interact
@@ -649,6 +652,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     // Clear the content
     profileContent.innerHTML = '';
     let pollingInterval = null;
+    let profileJobIds = [];
 
     // Update jobs
     const updateJobs = (jobs, container, targetUserId) => {
@@ -663,8 +667,10 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         // Sort by descending order of createdAt
         const sortedJobs = jobs ? [...jobs].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) : [];
 
+        profileJobIds = [];
         if (sortedJobs && sortedJobs.length > 0) {
             sortedJobs.forEach((job, index) => {
+                profileJobIds.push(job.id);
                 const jobElement = showJobElement(job, index, sortedJobs, targetUserId);
                 jobsSection.appendChild(jobElement);
             });
@@ -880,6 +886,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     });
     const cleanup = () => {
         if (pollingInterval) {
+            console.log('Stopping profile polling'); // 调试日志
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
@@ -896,7 +903,7 @@ const loadFeed = () => {
 
     const feedContent = document.getElementById('feed-content');
     feedContent.innerHTML = ''; // Clear existing content
-    jobIds = []; // Reset job IDs
+    let feedJobIds = [];
 
     let start = 0; // current page index
     let isLoading = false;
@@ -929,7 +936,7 @@ const loadFeed = () => {
                         return;
                     }
                     sortedJobs.forEach((job, index) => {
-                        jobIds.push(job.id);
+                        feedJobIds.push(job.id);
                         const jobElement = showJobElement(job, index, sortedJobs);
                         feedContent.appendChild(jobElement);
                     });
@@ -952,9 +959,9 @@ const loadFeed = () => {
 
         // clear the content
         feedContent.innerHTML = '';
-        jobIds = []; // reset jobIds
+        feedJobIds = []; // reset jobIds
         sortedJobs.forEach((job, index) => {
-            jobIds.push(job.id);
+            feedJobIds.push(job.id);
             const jobElement = showJobElement(job, index, sortedJobs);
             feedContent.appendChild(jobElement);
         });
@@ -985,7 +992,7 @@ const loadFeed = () => {
                     } else {
                         //output when there is no more reasult
                         console.log('Feed polling result:', allJobs);
-                        hasMoreData = allJobs.length > 0 && currentStart > jobIds.length;
+                        hasMoreData = allJobs.length > 0 && currentStart > feedJobIds.length;
                         updateFeed(allJobs);
                     }
                 })
@@ -1053,6 +1060,7 @@ const loadFeed = () => {
     // stop polling when leaving the feed page
     const cleanup = () => {
         if (pollingInterval) {
+            console.log('Stopping feed polling'); // 调试日志
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
