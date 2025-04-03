@@ -56,6 +56,27 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
         });
 };
 
+// show Notification(block at bottom-right)
+const showNotification = (message) => {
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.textContent = message;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.textContent = '×';
+    closeBtn.onclick = () => notification.remove();
+    notification.appendChild(closeBtn);
+
+    document.body.appendChild(notification);
+
+    // disappear in 5 sec
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+};
 
 //Error popup
 const showErrorModal = (message) => {
@@ -163,11 +184,11 @@ document.getElementById('btn-register').addEventListener('click', () => {
             password: password,
             name: name,
         },
-    ).then((data)=>{
-            localStorage.setItem('lurkforwork_token', data.token);
-            myId=data.userId;
-            showPage('feed');
-        })
+    ).then((data) => {
+        localStorage.setItem('lurkforwork_token', data.token);
+        myId = data.userId;
+        showPage('feed');
+    })
     .catch((error) => {
         showErrorModal(error);
     });
@@ -193,12 +214,11 @@ document.getElementById('btn-login').addEventListener('click', () => {
             email: email,
             password: password,
         }
-    ).then((data)=>{
+    ).then((data) => {
         localStorage.setItem('lurkforwork_token', data.token);
-        myId=data.userId;
+        myId = data.userId;
         showPage('feed');
-    })
-    .catch((error) => {
+    }).catch((error) => {
         showErrorModal(error);
     });
 });
@@ -216,6 +236,10 @@ document.getElementById('btn-profileback').addEventListener('click', () => {
 
 //btn-logout
 document.getElementById('btn-logout').addEventListener('click', () => {
+    const token = localStorage.getItem('lurkforwork_token');
+    if (token) {
+        localStorage.removeItem(`feedJobIds_${token}`); // 移除用户特定的 feedJobIds
+    }
     localStorage.removeItem('lurkforwork_token');
     document.getElementById("btn-profile").style.display = "none";
     document.getElementById("btn-search").style.display = "none";
@@ -257,7 +281,7 @@ let currentCleanup = null;
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
 
-    // 执行上一次的清理
+    // doing cleanup
     if (currentCleanup) {
         console.log(`Cleaning up before switching to ${pageName}`);
         currentCleanup();
@@ -992,7 +1016,6 @@ const loadFeed = () => {
                     } else {
                         console.log('Feed polling result:', allJobs);
     
-                        // 获取当前用户的 token
                         const token = localStorage.getItem('lurkforwork_token');
                         if (!token) {
                             console.error('No token found, skipping feed job tracking');
@@ -1000,23 +1023,25 @@ const loadFeed = () => {
                             updateFeed(allJobs);
                             return;
                         }
-                        // 使用 token 绑定 feedJobIds
+    
                         const storageKey = `feedJobIds_${token}`;
-                        const lastJobIds = JSON.parse(localStorage.getItem(storageKey)) || [];
-                        const currentJobIds = allJobs.map(job => job.id);
+                        const lastJobIds = [...new Set(JSON.parse(localStorage.getItem(storageKey)) || [])];
+                        const currentJobIds = [...new Set(allJobs.map(job => job.id))];
     
-                        // 检测新增职位
-                        const newJobs = currentJobIds.filter(id => !lastJobIds.includes(id));
-                        if (newJobs.length > 0) {
-                            const modalBody = document.getElementById('new-job-modal-body');
-                            modalBody.textContent = `New jobs posted: ${newJobs.length} new job${newJobs.length > 1 ? 's' : ''}!`;
-                            const newJobModal = new bootstrap.Modal(document.getElementById('new-job-modal'));
-                            newJobModal.show();
+                        console.log('Last job IDs (deduplicated):', lastJobIds);
+                        console.log('Current job IDs (deduplicated):', currentJobIds);
+    
+                        if (!localStorage.getItem(storageKey)) {
+                            localStorage.setItem(storageKey, JSON.stringify(currentJobIds));
+                        } else {
+                            const newJobs = [...new Set(currentJobIds.filter(id => !lastJobIds.includes(id)))];
+                            console.log('New jobs detected (deduplicated):', newJobs);
+                            if (newJobs.length > 0) {
+                                showNotification(`New jobs posted!`);
+                            }
+                            localStorage.removeItem(storageKey);
+                            localStorage.setItem(storageKey, JSON.stringify(currentJobIds));
                         }
-    
-                        // 在添加新数据前移除旧数据（覆盖）
-                        localStorage.removeItem(storageKey);
-                        localStorage.setItem(storageKey, JSON.stringify(currentJobIds));
     
                         hasMoreData = allJobs.length > 0 && currentStart > feedJobIds.length;
                         updateFeed(allJobs);
@@ -1085,7 +1110,7 @@ const loadFeed = () => {
     // stop polling when leaving the feed page
     const cleanup = () => {
         if (pollingInterval) {
-            console.log('Stopping feed polling'); // 调试日志
+            console.log('Stopping feed polling');
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
@@ -1153,7 +1178,17 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
                 modal.hide();
                 removeModalBackdrop();
                 showErrorModal('Job posted successfully!');
-                loadFeed();
+                apiCall('job/feed?start=0', 'GET', {})
+                    .then((feedData) => {
+                        const token = localStorage.getItem('lurkforwork_token');
+                        const storageKey = `feedJobIds_${token}`;
+                        localStorage.setItem(storageKey, JSON.stringify(feedData.map(job => job.id)));
+                        loadFeed();
+                    })
+                    .catch((error) => {
+                        console.error('Error syncing feed jobs:', error);
+                        loadFeed();
+                    });
             })
             .catch((error) => {
                 modal.hide();
