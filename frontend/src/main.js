@@ -215,7 +215,7 @@ document.getElementById('btn-profileback').addEventListener('click', () => {
 });
 
 //btn-logout
-document.getElementById('btn-logout').addEventListener('click',()=>{
+document.getElementById('btn-logout').addEventListener('click', () => {
     localStorage.removeItem('lurkforwork_token');
     document.getElementById("btn-profile").style.display = "none";
     document.getElementById("btn-search").style.display = "none";
@@ -981,7 +981,7 @@ const loadFeed = () => {
     const pollFeed = () => {
         let currentStart = 0;
         const allJobs = [];
-
+    
         const fetchNextPage = () => {
             apiCall(`job/feed?start=${currentStart}`, 'GET', {})
                 .then((data) => {
@@ -990,8 +990,34 @@ const loadFeed = () => {
                         currentStart += data.length;
                         fetchNextPage();
                     } else {
-                        //output when there is no more reasult
                         console.log('Feed polling result:', allJobs);
+    
+                        // 获取当前用户的 token
+                        const token = localStorage.getItem('lurkforwork_token');
+                        if (!token) {
+                            console.error('No token found, skipping feed job tracking');
+                            hasMoreData = allJobs.length > 0 && currentStart > feedJobIds.length;
+                            updateFeed(allJobs);
+                            return;
+                        }
+                        // 使用 token 绑定 feedJobIds
+                        const storageKey = `feedJobIds_${token}`;
+                        const lastJobIds = JSON.parse(localStorage.getItem(storageKey)) || [];
+                        const currentJobIds = allJobs.map(job => job.id);
+    
+                        // 检测新增职位
+                        const newJobs = currentJobIds.filter(id => !lastJobIds.includes(id));
+                        if (newJobs.length > 0) {
+                            const modalBody = document.getElementById('new-job-modal-body');
+                            modalBody.textContent = `New jobs posted: ${newJobs.length} new job${newJobs.length > 1 ? 's' : ''}!`;
+                            const newJobModal = new bootstrap.Modal(document.getElementById('new-job-modal'));
+                            newJobModal.show();
+                        }
+    
+                        // 在添加新数据前移除旧数据（覆盖）
+                        localStorage.removeItem(storageKey);
+                        localStorage.setItem(storageKey, JSON.stringify(currentJobIds));
+    
                         hasMoreData = allJobs.length > 0 && currentStart > feedJobIds.length;
                         updateFeed(allJobs);
                     }
@@ -1000,8 +1026,7 @@ const loadFeed = () => {
                     console.error('Error polling feed:', error);
                 });
         };
-
-        // start from start = 0
+    
         fetchNextPage();
     };
 
