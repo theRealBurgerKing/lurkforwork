@@ -1,4 +1,4 @@
-/* base styles */
+/* ----------base styles ----------*/
 html, body {
     margin: 0;
     padding: 0;
@@ -10,6 +10,13 @@ html, body {
     display: none;
 }
 
+.comments ul li {
+    margin-bottom: 10px;
+}
+
+.comments ul li span {
+    flex: 1;
+}
 /* Job-post */
 .job-post {
     margin: 20px 0;
@@ -25,6 +32,9 @@ html, body {
     max-width: 100%;
     height: auto;
 }
+
+
+
 /* ----------button--------- */
 /* btn-profile */
 #btn-profile {
@@ -40,13 +50,9 @@ html, body {
     z-index: 1000; 
     display: none;
 }
-
 #btn-profile:hover {
     background-color: #0056b3;
 }
-
-
-
 
 /* btn-search */
 #btn-search {
@@ -62,7 +68,6 @@ html, body {
     z-index: 1000; 
     display: none;
 }
-
 #btn-search:hover {
     background-color: #0056b3;
 }
@@ -71,21 +76,18 @@ html, body {
 #btn-post-job {
     margin-left: 10px;
 }
-
 #post-job-modal .modal-body {
     padding: 20px;
 }
-
 #post-job-modal .form-label {
     font-weight: bold;
 }
-
 #post-job-modal textarea {
     resize: vertical;
 }
 
-/* delete-job-btn */
-.delete-job-btn {
+/* btn-delete-job */
+.btn-delete-job {
     background-color: #dc3545;
     color: white;
     border: none;
@@ -95,13 +97,12 @@ html, body {
     border-radius: 4px;
     cursor: pointer;
 }
-
-.delete-job-btn:hover {
+.btn-delete-job:hover {
     background-color: #c82333;
 }
 
-/* update-job-btn */
-.update-job-btn {
+/* btn-update-job */
+.btn-update-job {
     background-color: #007bff;
     color: white;
     border: none;
@@ -111,13 +112,12 @@ html, body {
     border-radius: 4px;
     cursor: pointer;
 }
-
-.update-job-btn:hover {
+.btn-update-job:hover {
     background-color: #0056b3;
 }
 
-/* comment-job-button */
-.comment-job-btn {
+/* btn-comment-job */
+.btn-comment-job {
     background-color: #28a745;
     color: white;
     border: none;
@@ -126,13 +126,25 @@ html, body {
     border-radius: 4px;
     cursor: pointer;
 }
-
-.comment-job-btn:hover {
+.btn-comment-job:hover {
     background-color: #218838;
 }
 
+/* .btn-show-likes */
+.btn-show-likes{
+    margin-left: 40px;
+    width:160px;
+}
 
-/*  */
+/* btn-like-job */
+.btn-like-job{
+    width:100px;
+}
+
+
+
+/* ---------- profile-avatar---------- */
+/* edit-image-preview */
 #edit-image-preview img {
     width: 150px;
     height: 150px;
@@ -148,7 +160,6 @@ html, body {
     border: 2px solid #ddd;
     object-fit: cover;
 }
-
 
 .little-profile-pic {
     width: 30px !important;
@@ -200,6 +211,7 @@ html, body {
     margin-bottom: 30px;
     color: #8a5039;
 }
+
 /* page-register */
 #page-register {
     background-color: #e1d8d2;
@@ -225,27 +237,17 @@ html, body {
     margin-right: 10vw;
     margin-top: 10vh;
 }
-
 .page-title{
     margin-bottom: 30px;
     color: #8a5039;
     font-size: 50px;
-
 }
+
 #page-profile,
 #page-other-profile {
     margin-left: 10vw;
     margin-right: 10vw;
     margin-top: 10vh;
-}
-
-.show-likes-btn{
-    margin-left: 40px;
-    width:160px;
-}
-
-.like-job{
-    width:100px;
 }
 
 .loading-indicator {
@@ -255,7 +257,6 @@ html, body {
     color: #666;
 }
 
-
 .bottom-padding {
     height: 100px;
     padding-top: 20px;
@@ -263,15 +264,8 @@ html, body {
     justify-content: center;
 }
 
-.comments ul li {
-    margin-bottom: 10px;
-}
 
-.comments ul li span {
-    flex: 1;
-}
-
-/* ---------Profile header------------ */
+/* ----------Profile----------- */
 /* profile header in loadProfile */
 #profile-header,
 #other-profile-header {
@@ -287,10 +281,6 @@ html, body {
 
 }
 
-/* #profile-avatar {
-    margin-right: 20px;
-} */
-
 #profile-text,
 #other-profile-text{
     display: flex;
@@ -305,21 +295,6 @@ html, body {
 #other-profile-email {
     margin: 5px 0 0 0;
 }
-
-/* profile header in loadOtherProfile */
-#other-profile-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-    background-color: papayawhip;
-    border-radius: 20px;
-    margin-top: 3vh;
-    padding-left: 3vw;
-    padding-top: 3vh;
-    padding-bottom: 3vh;
-}
-
-
 
 
 /* watchers in loadProfile */
@@ -339,13 +314,11 @@ html, body {
 
 
 /* watchers in loadOtherProfile */
-
 #other-profile-watchers-header {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
 }
-
 
 #other-profile-watch-btn {
     padding: 5px 10px;
@@ -354,31 +327,28 @@ html, body {
 
 
 
-
+/* ----------Modal---------- */
 /* Style for the Comment modal */
 #comment-modal .modal-body {
     padding: 20px;
 }
-
 #comment-modal .form-label {
     font-weight: bold;
 }
-
 #comment-modal textarea {
     resize: vertical;
 }
 
-/* Ensure error-modal appears on top of other modals */
+/* Style for the Comment modal */
 #error-modal {
     z-index: 1060;
 }
 
-/* Ensure the backdrop of error-modal also has a higher z-index */
 #error-modal + .modal-backdrop {
     z-index: 1055;
 }
 
-
+/* Style for notification */
 .notification {
     position: fixed;
     bottom: 20px;
@@ -404,6 +374,7 @@ html, body {
     margin-left: 10px;
 }
 
+/* Style for back to top */
 .back-to-top {
     position: fixed;
     bottom: 80px;

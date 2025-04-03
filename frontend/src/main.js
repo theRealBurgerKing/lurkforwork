@@ -390,7 +390,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     likesP.appendChild(likesStrong);
     // Like Button
     const likeButton = document.createElement('button');
-    likeButton.className = 'like-job';
+    likeButton.className = 'btn-like-job';
     likeButton.dataset.jobId = job.id;
     likeButton.dataset.index = index;
     let ifLiked = job.likes && job.likes.some(like => like.userId === myId);
@@ -410,7 +410,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     // Show Likes Button
     const showLikesButton = document.createElement('button');
     showLikesButton.textContent = 'Show Likes';
-    showLikesButton.className = 'show-likes-btn';
+    showLikesButton.className = 'btn-show-likes';
     showLikesButton.dataset.index = index;
     showLikesButton.addEventListener('click', () => {
         const jobData = jobsArray[index];
@@ -474,7 +474,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
 
     // Comment Button
     const commentButton = document.createElement('button');
-    commentButton.className = 'comment-job-btn';
+    commentButton.className = 'btn-comment-job';
     commentButton.textContent = 'Comment';
     commentButton.dataset.jobId = job.id;
     commentButton.addEventListener('click', () => {
@@ -542,7 +542,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     // Delete Button (only for the creator)
     if (job.creatorId === myId) {
         const deleteButton = document.createElement('button');
-        deleteButton.className = 'delete-job-btn';
+        deleteButton.className = 'btn-delete-job';
         deleteButton.textContent = 'Delete';
         deleteButton.dataset.jobId = job.id;
         deleteButton.addEventListener('click', () => {
@@ -561,7 +561,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     // Update Button (only for the creator)
     if (job.creatorId === myId) {
         const updateButton = document.createElement('button');
-        updateButton.className = 'update-job-btn';
+        updateButton.className = 'btn-update-job';
         updateButton.textContent = 'Update';
         updateButton.dataset.jobId = job.id;
         updateButton.addEventListener('click', () => {
@@ -598,7 +598,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                 }
             };
             updateJobModal.show();
-            const saveButton = document.getElementById('update-job-btn');
+            const saveButton = document.getElementById('btn-update-job');
             const newSaveButton = saveButton.cloneNode(true);
             saveButton.parentNode.replaceChild(newSaveButton, saveButton);
             newSaveButton.addEventListener('click', () => {
@@ -994,7 +994,7 @@ const loadFeed = () => {
     const updateFeed = (jobs) => {
         const sortedJobs = jobs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         const currentJobElements = feedContent.querySelectorAll('.job-post');
-        const currentJobIds = Array.from(currentJobElements).map(el => el.querySelector('.like-job').dataset.jobId);
+        const currentJobIds = Array.from(currentJobElements).map(el => el.querySelector('.btn-like-job').dataset.jobId);
 
         // clear the content
         feedContent.innerHTML = '';
