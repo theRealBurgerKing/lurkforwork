@@ -78,6 +78,32 @@ const showNotification = (message) => {
     }, 5000);
 };
 
+// create "back to top btn"
+const createBackToTopButton = () => {
+    const button = document.createElement('button');
+    button.className = 'back-to-top';
+    button.innerHTML = '↑';
+    button.title = 'Back to Top';
+    button.style.display = 'none';
+    button.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    document.body.appendChild(button);
+    return button;
+};
+
+const backToTopButton = createBackToTopButton();
+
+
+const toggleBackToTopButton = (pageName) => {
+    const scrollTop = window.scrollY || window.pageYOffset;
+    if (scrollTop > 200 && (pageName === 'feed' || pageName === 'profile')) {
+        backToTopButton.style.display = 'flex'; // display
+    } else {
+        backToTopButton.style.display = 'none'; // hide
+    }
+};
+
 //Error popup
 const showErrorModal = (message) => {
     const modalElement = document.getElementById('error-modal');
@@ -276,7 +302,7 @@ function sendUpdateRequest(updatedData) {
             showErrorModal('Failed to update: '+error);
         })
 };
-let currentCleanup = null;
+
 //show page named [pageName] and hide other
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
@@ -290,6 +316,11 @@ const showPage = (pageName, targetUserId = null) => {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
+
+
+    // show back to top btn
+    const scrollTop = window.scrollY || window.pageYOffset;
+    toggleBackToTopButton(pageName);
 
     let cleanupFunc = null;
     if (pageName === 'feed') {
@@ -574,31 +605,9 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                     showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
                     return;
                 }
-                const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-                if (!datePattern.test(startDate)) {
-                    updateJobModal.hide();
-                    showErrorModal('Start Date must be in the format DD/MM/YYYY.');
-                    return;
-                }
-                const [day, month, year] = startDate.split('/').map(Number);
-                const parsedDate = new Date(year, month - 1, day);
-                if (
-                    parsedDate.getDate() !== day ||
-                    parsedDate.getMonth() + 1 !== month ||
-                    parsedDate.getFullYear() !== year
-                ) {
-                    updateJobModal.hide();
-                    showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
-                    return;
-                }
-                // Check if the start date is earlier than today
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-                if (parsedDate < today) {
-                    updateJobModal.hide();
-                    showErrorModal('Start Date cannot be earlier than today.');
-                    return;
-                }
+                const dateResult = validateDate(startDate, updateJobModal);
+                if (!dateResult) return;
+                const { day, month, year } = dateResult;
                 const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const updatedJobData = {
                     id: job.id,
@@ -1119,7 +1128,36 @@ const loadFeed = () => {
 
     return cleanup;
 };
+const validateDate = (dateStr, modal) => {
+    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!datePattern.test(dateStr)) {
+        modal.hide();
+        showErrorModal('Start Date must be in the format DD/MM/YYYY.');
+        return false;
+    }
 
+    const [day, month, year] = dateStr.split('/').map(Number);
+    const parsedDate = new Date(year, month - 1, day);
+    if (
+        parsedDate.getDate() !== day ||
+        parsedDate.getMonth() + 1 !== month ||
+        parsedDate.getFullYear() !== year
+    ) {
+        modal.hide();
+        showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
+        return false;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (parsedDate < today) {
+        modal.hide();
+        showErrorModal('Start Date cannot be earlier than today.');
+        return false;
+    }
+
+    return { day, month, year };
+};
 
 // Post Job button event listener
 document.getElementById('post-job-btn').addEventListener('click', () => {
@@ -1135,34 +1173,9 @@ document.getElementById('post-job-btn').addEventListener('click', () => {
         showErrorModal('Please fill in all required fields (Title, Start Date, Description).');
         return;
     }
-    // Validate date format (DD/MM/YYYY)
-    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-    if (!datePattern.test(startDate)) {
-        modal.hide();
-        showErrorModal('Start Date must be in the format DD/MM/YYYY.');
-        return;
-    }
-    // Parse and validate the date
-    const [day, month, year] = startDate.split('/').map(Number);
-    const parsedDate = new Date(year, month - 1, day);
-    if (
-        parsedDate.getDate() !== day ||
-        parsedDate.getMonth() + 1 !== month ||
-        parsedDate.getFullYear() !== year
-    ) {
-        modal.hide();
-        showErrorModal('Invalid Start Date. Please ensure the date is valid (e.g., 31/12/2024).');
-        return;
-    }
-    // Check if the start date is earlier than today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (parsedDate < today) {
-        modal.hide();
-        showErrorModal('Start Date cannot be earlier than today.');
-        return;
-    }
-
+    const dateResult = validateDate(startDate, modal);
+    if (!dateResult) return;
+    const { day, month, year } = dateResult;
     // Format the date to YYYY-MM-DD for the API
     const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     // Prepare the job data
@@ -1251,8 +1264,11 @@ for (const atag of document.querySelectorAll('a')) {
     }
 }
 //When Page load
-if(localStorage.getItem('lurkforwork_token')){
+if (localStorage.getItem('lurkforwork_token')) {
     showPage('feed');
-}else{
+    const scrollTop = window.scrollY || window.pageYOffset;
+    toggleBackToTopButton('feed');
+} else {
     showPage('register');
+    toggleBackToTopButton('register');
 }
