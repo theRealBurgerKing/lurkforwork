@@ -5,7 +5,7 @@ import { fileToDataUrl } from './helpers.js';
 let saveProfileHandler = null;
 let myId = null;
 let userCache = {};
-
+let currentCleanup = null;
 // Generate a link element with an avatar and username
 const createUserLinkWithAvatar = (userId, additionalText = '') => {
     const listItem = document.createElement('li');
@@ -82,7 +82,7 @@ const showNotification = (message) => {
 const createBackToTopButton = () => {
     const button = document.createElement('button');
     button.className = 'back-to-top';
-    button.innerHTML = '↑';
+    button.innerText = '↑';
     button.title = 'Back to Top';
     button.style.display = 'none';
     button.addEventListener('click', () => {
@@ -103,6 +103,12 @@ const toggleBackToTopButton = (pageName) => {
         backToTopButton.style.display = 'none'; // hide
     }
 };
+
+window.addEventListener('scroll', () => {
+    const currentPage = document.querySelector('.page:not(.hide)')?.id.replace('page-', '') || 'register';
+    console.log(`Scroll event: currentPage=${currentPage}`);
+    toggleBackToTopButton(currentPage);
+});
 
 //Error popup
 const showErrorModal = (message) => {

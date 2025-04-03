@@ -1,1 +1,1 @@
-(optional) TODO!
+1. Added a back-to-top button that appears after scrolling more than 200px. When clicked, it smoothly scrolls back to the top of the page.
