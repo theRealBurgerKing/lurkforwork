@@ -1146,6 +1146,8 @@ document.getElementById('btn-login').addEventListener('click', () => {
 
 //listener to btn-profile event
 document.getElementById('btn-profile').addEventListener('click', () => {
+    const btn = document.getElementById('btn-profile');
+    btn.setAttribute('aria-label', 'go to profile');
     showPage('profile');
 });
 
