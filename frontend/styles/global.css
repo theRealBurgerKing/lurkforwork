@@ -289,6 +289,19 @@ html, body {
     display: flex;
     align-items: center;
 }
+#profile-content .user-link-item,
+#other-profile-content .user-link-item
+{
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#profile-content .user-link-item:last-child,
+#other-profile-content .user-link-item:last-child
+{
+    margin-bottom: 0;
+}
 
 /* ----------Profile content----------- */
 /* profile header in loadProfile */
