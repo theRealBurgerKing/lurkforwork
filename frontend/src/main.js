@@ -280,11 +280,12 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     showPage('register');
 });
 
-//back to feed (otherprofile)
+//listener to btn-other-profile-back event
 document.getElementById('btn-other-profile-back').addEventListener('click', () => {
     showPage('feed');
 });
 
+// Sends a request to update user profile data
 function sendUpdateRequest(updatedData) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
     const editButton = document.getElementById('btn-edit-profile');
@@ -295,7 +296,6 @@ function sendUpdateRequest(updatedData) {
         showErrorModal('No changes to save.');
         return;
     }
-
     apiCall('user', 'PUT', updatedData)
         .then(() => {
             modal.hide();
@@ -311,11 +311,10 @@ function sendUpdateRequest(updatedData) {
         })
 };
 
-//show page named [pageName] and hide other
+// Shows the specified page and hides others
 const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
-
-    // doing cleanup
+    // Clean up previous page state
     if (currentCleanup) {
         console.log(`Cleaning up before switching to ${pageName}`);
         currentCleanup();
@@ -324,12 +323,9 @@ const showPage = (pageName, targetUserId = null) => {
         page.classList.add('hide');
     }
     document.getElementById(`page-${pageName}`).classList.remove('hide');
-
-
-    // show back to top btn
+    // Update "Back to Top" button visibility
     const scrollTop = window.scrollY || window.pageYOffset;
     toggleBackToTopButton(pageName);
-
     let cleanupFunc = null;
     if (pageName === 'feed') {
         cleanupFunc = loadFeed();
@@ -342,6 +338,7 @@ const showPage = (pageName, targetUserId = null) => {
     }
     currentCleanup = cleanupFunc;
 };
+
 
 // show Jobs and add interact
 const showJobElement = (job, index, jobsArray,targetUserId = null) => {
@@ -471,8 +468,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     commentsCountStrong.textContent = 'Comments: ';
     commentsCountP.appendChild(commentsCountStrong);
     commentsCountP.appendChild(document.createTextNode(commentsCount));
-    
-
     // Comment Button
     const commentButton = document.createElement('button');
     commentButton.className = 'btn-comment-job';
@@ -495,12 +490,10 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
                 showErrorModal('Please enter a comment.');
                 return;
             }
-
             const commentData = {
                 id: job.id,
                 comment: commentText
             };
-
             apiCall('job/comment', 'POST', commentData)
                 .then(() => {
                     commentModal.hide();
@@ -514,7 +507,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         });
     });
     commentsCountP.appendChild(commentButton);
-
     jobContainer.appendChild(commentsCountP);
     // Comments
     const commentsDiv = document.createElement('div');
@@ -652,8 +644,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         });
         jobContainer.appendChild(updateButton);
     }
-
-
     return jobContainer;
 };
 
@@ -676,9 +666,8 @@ const formatTimeAgo = (createdAt) => {
     }
 };
 
-
+// load user's profile based on whether it's the user's own profile
 const loadUserProfile = (userId, isOwnProfile = false) => {
-    // Determine the content container and button visibility based on whether it's the user's own profile
     const profileContent = document.getElementById(isOwnProfile ? 'profile-content' : 'other-profile-content');
     document.getElementById("btn-profile").style.display = isOwnProfile ? "none" : "block";
     document.getElementById("btn-search").style.display = "none";
@@ -688,12 +677,10 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         showErrorModal('User ID not found. Please log in again.');
         return;
     }
-
     // Clear the content
     profileContent.innerHTML = '';
     let pollingInterval = null;
     let profileJobIds = [];
-
     // Update jobs
     const updateJobs = (jobs, container, targetUserId) => {
         const jobsSection = container.querySelector('.jobs-section') || document.createElement('div');
