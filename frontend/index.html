@@ -11,6 +11,24 @@
 </head>
 <body>
 
+<!-- message box -->
+<div id="error-modal" class="modal fade" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">message</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="error-message"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Comment Modal -->
 <div class="modal fade" id="comment-modal" tabindex="-1" aria-labelledby="commentModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -42,23 +60,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="likes-modal-body">
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- message box -->
-<div id="error-modal" class="modal fade" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">message</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p id="error-message"></p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -105,7 +106,6 @@
     </div>
   </div>
 </div>
-
 
 <!-- Edit Profile Modal -->
 <div id="edit-profile-modal" class="modal fade" tabindex="-1">
@@ -246,6 +246,7 @@
       <button type="button" id = "btn-register" class = "btn btn-primary">Submit</button>
       <a internal-link = "login" href = "#">Login instead</a>
     </div>
+    
     <!-- page-feed -->
     <div id = "page-feed" class = "page hide">
       <h1 class = "page-title">Feed</h1>

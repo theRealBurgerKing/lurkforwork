@@ -746,7 +746,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     apiCall(`user?userId=${userId}`, 'GET', {}).then((data) => {
         // Create a container for avatar and text (name + email)
         const profileHeader = document.createElement('div');
-        profileHeader.id = isOwnProfile ? 'profile-header' : 'other-profile-header';
+        profileHeader.id = 'profile-header';
 
         // Profile picture
         let avatarElement;
@@ -766,7 +766,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
 
         // Create a container for name and email (vertical layout)
         const textContainer = document.createElement('div');
-        textContainer.id = isOwnProfile ? 'profile-text' : 'other-profile-text';
+        textContainer.id = 'profile-text';
 
         // Name
         const nameHeader = document.createElement('h2');
@@ -777,7 +777,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         // Email
         const emailP = document.createElement('p');
         emailP.textContent = `Email: ${data.email}`;
-        emailP.id = isOwnProfile ? 'profile-email' : 'other-profile-email';
+        emailP.id = 'profile-email';
         textContainer.appendChild(emailP);
 
         profileHeader.appendChild(textContainer);
@@ -855,13 +855,13 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
 
         // Create a container for the "Users who watch" section
         const watchersSection = document.createElement('div');
-        watchersSection.id = isOwnProfile ? 'profile-watchers-section' : 'other-profile-watchers-section';
+        watchersSection.id = 'profile-watchers-section';
 
         // Create a container for the header (and button for other profiles)
         const watchersHeaderContainer = document.createElement('div');
-        if (!isOwnProfile) {
-            watchersHeaderContainer.id = 'other-profile-watchers-header';
-        }
+
+        watchersHeaderContainer.id = 'profile-watchers-header';
+        
 
         // Users who watch (header)
         const watchersHeader = document.createElement('h3');

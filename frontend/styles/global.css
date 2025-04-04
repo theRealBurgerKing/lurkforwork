@@ -141,7 +141,28 @@ html, body {
     width:100px;
 }
 
-
+/* btn-back to top */
+.back-to-top {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background-color: #8a5039;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+    display: none;
+}
+.back-to-top:hover {
+    opacity: 1;
+}
 
 /* ---------- profile-avatar---------- */
 /* edit-image-preview */
@@ -267,8 +288,7 @@ html, body {
 
 /* ----------Profile----------- */
 /* profile header in loadProfile */
-#profile-header,
-#other-profile-header {
+#profile-header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
@@ -281,8 +301,7 @@ html, body {
 
 }
 
-#profile-text,
-#other-profile-text{
+#profile-text {
     display: flex;
     flex-direction: column;
 }
@@ -291,30 +310,20 @@ html, body {
     margin: 0;
 }
 
-#profile-email,
-#other-profile-email {
+#profile-email {
     margin: 5px 0 0 0;
 }
 
 
 /* watchers in loadProfile */
-#profile-watchers-section,
-#other-profile-watchers-section {
+#profile-watchers-section {
     background-color: #f0f8ff;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 20px;
 }
 
-#profile-watchers-section h3,
-#other-profile-watchers-header h3 {
-    margin: 0;
-    margin-bottom: 10px;
-}
-
-
-/* watchers in loadOtherProfile */
-#other-profile-watchers-header {
+#profile-watchers-header {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
@@ -374,26 +383,3 @@ html, body {
     margin-left: 10px;
 }
 
-/* Style for back to top */
-.back-to-top {
-    position: fixed;
-    bottom: 80px;
-    right: 20px;
-    background-color: #8a5039;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 1000;
-    opacity: 0.8;
-    transition: opacity 0.3s;
-    display: none;
-}
-
-.back-to-top:hover {
-    opacity: 1;
-}
