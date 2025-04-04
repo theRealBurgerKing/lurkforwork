@@ -20,12 +20,15 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
                 img.src = userInfo.image;
                 img.alt = `${userInfo.name}'s profile picture`;
                 img.className = 'rounded-circle little-profile-pic';
+                img.setAttribute('role', 'img');
                 listItem.appendChild(img);
             } else {
                 // no avatar: generate placeholder avatar
                 const placeholder = document.createElement('div');
                 placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
                 placeholder.textContent = userInfo.name.charAt(0).toUpperCase();
+                placeholder.setAttribute('aria-label', `${userInfo.name}'s placeholder'`);
+                placeholder.setAttribute('role', 'img');
                 listItem.appendChild(placeholder);
             }
             // add name and hyperlink
@@ -34,6 +37,7 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
             userLink.href = '#';
             userLink.dataset.userId = userId;
             userLink.textContent = userInfo.name;
+            userLink.setAttribute('aria-label', `see ${userInfo.name}'s profile`);
             userLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 showPage('other-profile', userId);
@@ -80,6 +84,7 @@ const createBackToTopButton = () => {
     button.className = 'back-to-top';
     button.innerText = '↑';
     button.title = 'Back to Top';
+    button.setAttribute('aria-label', 'back-to-top-btn');
     button.style.display = 'none';
     button.addEventListener('click', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -256,7 +261,8 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     if (job.image){
         const img = document.createElement('img');
         img.src = job.image;
-        img.alt = job.title;
+        img.alt = `${job.title}'s picture'`;
+        img.setAttribute('role', 'img');
         jobContainer.appendChild(img);
     }
     // Posted time
@@ -286,11 +292,13 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     likeButton.dataset.index = index;
     let ifLiked = job.likes && job.likes.some(like => like.userId === myId);
     likeButton.textContent = ifLiked ? 'Unlike' : 'Like';
+    likeButton.setAttribute('aria-label', ifLiked ? `unlike ${job.title}` : `like ${job.title}`);
     likeButton.addEventListener('click', () => {
         const newIfLiked = !ifLiked;
         apiCall('job/like', 'PUT', { id: job.id, turnon: newIfLiked })
             .then(() => {
                 likeButton.textContent = newIfLiked ? 'Unlike' : 'Like';
+                likeButton.setAttribute('aria-label', newIfLiked ? `unlike ${job.title}` : `like ${job.title}`);
                 showErrorModal(`${newIfLiked ? 'Liked' : 'Unliked'} successfully!`);
             })
             .catch(error => showErrorModal('Error: ' + error));
@@ -303,6 +311,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     showLikesButton.textContent = 'Show Likes';
     showLikesButton.className = 'btn-show-likes';
     showLikesButton.dataset.index = index;
+    showLikesButton.setAttribute('aria-label', `show the users who like ${job.title}`);
     showLikesButton.addEventListener('click', () => {
         const jobData = jobsArray[index];
         const likes = jobData.likes || [];
@@ -310,7 +319,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         removeModalBackdrop();
         const likesModal = new bootstrap.Modal(document.getElementById('likes-modal'));
         const modalBody = document.getElementById('likes-modal-body');
-        modalBody.innerHTML = '';
+        modalBody.replaceChildren();
 
         if (likes.length === 0) {
             const noLikesText = document.createElement('p');
@@ -366,6 +375,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
     commentButton.className = 'btn-comment-job';
     commentButton.textContent = 'Comment';
     commentButton.dataset.jobId = job.id;
+    commentButton.setAttribute('aria-label', `Add a comment for ${job.title}`);
     commentButton.addEventListener('click', () => {
         removeModalBackdrop();
         const commentModal = new bootstrap.Modal(document.getElementById('comment-modal'));
@@ -431,6 +441,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         deleteButton.className = 'btn-delete-job';
         deleteButton.textContent = 'Delete';
         deleteButton.dataset.jobId = job.id;
+        deleteButton.setAttribute('aria-label', `delete job: ${job.title}`);
         deleteButton.addEventListener('click', () => {
             if (confirm('Are you sure you want to delete this job?')) {
                 apiCall('job', 'DELETE', { id: job.id })
@@ -450,6 +461,7 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         updateButton.className = 'btn-update-job';
         updateButton.textContent = 'Update';
         updateButton.dataset.jobId = job.id;
+        updateButton.setAttribute('aria-label', `update job: ${job.title}`);
         updateButton.addEventListener('click', () => {
             removeModalBackdrop();
             const updateJobModal = new bootstrap.Modal(document.getElementById('update-job-modal'));
@@ -571,14 +583,14 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
         return;
     }
     // Clear the content
-    profileContent.innerHTML = '';
+    profileContent.replaceChildren();
     let pollingInterval = null;
     let profileJobIds = [];
     // Update jobs
     const updateJobs = (jobs, container, targetUserId) => {
         const jobsSection = container.querySelector('.jobs-section') || document.createElement('div');
         jobsSection.className = 'jobs-section';
-        jobsSection.innerHTML = '';
+        jobsSection.replaceChildren();
 
         const jobsHeader = document.createElement('h3');
         jobsHeader.textContent = 'Created Jobs:';
@@ -637,11 +649,15 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
             avatarElement.alt = `${data.name}'s profile picture`;
             avatarElement.className = 'rounded-circle main-profile-pic';
             avatarElement.id = isOwnProfile ? 'profile-avatar' : 'other-profile-avatar';
+            avatarElement.setAttribute('aria-label', `${data.name}'s profile`);
+            avatarElement.setAttribute('role', 'img');
         } else {
             avatarElement = document.createElement('div');
             avatarElement.className = 'rounded-circle main-profile-pic placeholder-avatar';
             avatarElement.textContent = data.name.charAt(0).toUpperCase();
             avatarElement.id = isOwnProfile ? 'profile-avatar' : 'other-profile-avatar';
+            avatarElement.setAttribute('aria-label', `${data.name}'s profile placeholder`);
+            avatarElement.setAttribute('role', 'img');
         }
         profileHeader.appendChild(avatarElement);
 
@@ -673,6 +689,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
             document.getElementById('edit-image').value = '';
 
             const editButton = document.getElementById('btn-edit-profile');
+            editButton.setAttribute('aria-label', 'edit my profile');
             editButton.addEventListener('click', () => {
                 removeModalBackdrop();
                 const modal = new bootstrap.Modal(document.getElementById('edit-profile-modal'));
@@ -758,6 +775,7 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
             watchButton.className = 'btn btn-primary';
             const isWatching = data.usersWhoWatchMeUserIds && data.usersWhoWatchMeUserIds.includes(myId);
             watchButton.textContent = isWatching ? 'Unwatch' : 'Watch';
+            watchButton.setAttribute('aria-label', isWatching ? `unwatch ${data.name}` : `watch ${data.name}`);
             watchButton.addEventListener('click', () => {
                 const turnon = !isWatching;
                 apiCall('user/watch', 'PUT', { id: userId, turnon })
@@ -821,7 +839,7 @@ const loadFeed = () => {
     document.getElementById("btn-search").style.display = "block";
 
     const feedContent = document.getElementById('feed-content');
-    feedContent.innerHTML = ''; // Clear existing content
+    feedContent.replaceChildren();
     let feedJobIds = [];
 
     let start = 0; // current page index
@@ -877,7 +895,7 @@ const loadFeed = () => {
         const currentJobIds = Array.from(currentJobElements).map(el => el.querySelector('.btn-like-job').dataset.jobId);
 
         // clear the content
-        feedContent.innerHTML = '';
+        feedContent.replaceChildren();
         feedJobIds = []; // reset jobIds
         sortedJobs.forEach((job, index) => {
             feedJobIds.push(job.id);
@@ -1126,11 +1144,15 @@ document.getElementById('btn-profile').addEventListener('click', () => {
 
 //listener to btn-profileback event
 document.getElementById('btn-profileback').addEventListener('click', () => {
+    const btn = document.getElementById('btn-profileback');
+    btn.setAttribute('aria-label', 'return page-feed');
     showPage('feed');
 });
 
 //listener to btn-logout event
 document.getElementById('btn-logout').addEventListener('click', () => {
+    const btn = document.getElementById('btn-logout');
+    btn.setAttribute('aria-label', 'btn-logout');
     const token = localStorage.getItem('lurkforwork_token');
     if (token) {
         localStorage.removeItem(`feedJobIds_${token}`);
@@ -1143,6 +1165,8 @@ document.getElementById('btn-logout').addEventListener('click', () => {
 
 //listener to btn-other-profile-back event
 document.getElementById('btn-other-profile-back').addEventListener('click', () => {
+    const btn = document.getElementById('btn-other-profile-back');
+    btn.setAttribute('aria-label', 'return page-feed');
     showPage('feed');
 });
 
