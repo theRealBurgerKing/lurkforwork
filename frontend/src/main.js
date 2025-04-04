@@ -101,7 +101,6 @@ const toggleBackToTopButton = (pageName) => {
 // Listens for scroll events to toggle the "Back to Top" button visibility
 window.addEventListener('scroll', () => {
     const currentPage = document.querySelector('.page:not(.hide)')?.id.replace('page-', '') || 'register';
-    console.log(`Scroll event: currentPage=${currentPage}`);
     toggleBackToTopButton(currentPage);
 });
 
@@ -177,8 +176,6 @@ function apiCall(path, method, data) {
     })
 }
 
-
-//############## EVENT LISTENER ##############
 // listener to btn-register event
 document.getElementById('btn-register').addEventListener('click', () => {
     const email = document.getElementById('register-email').value;
@@ -227,64 +224,6 @@ document.getElementById('btn-register').addEventListener('click', () => {
 });
 
 
-//listener to btn-login event
-document.getElementById('btn-login').addEventListener('click', () => {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password1').value;
-    // Validate form fields
-    if (!email) {
-        showErrorModal("Email cannot be empty");
-        return;
-    }
-    if (!password) {
-        showErrorModal("Password cannot be empty");
-        return;
-    }
-    // Send auth/login request
-    apiCall(
-        'auth/login',
-        'POST',
-        {
-            email: email,
-            password: password,
-        }
-    ).then((data) => {
-        localStorage.setItem('lurkforwork_token', data.token);
-        myId = data.userId;
-        showPage('feed');
-    }).catch((error) => {
-        showErrorModal(error);
-    });
-});
-
-//listener to btn-profile event
-document.getElementById('btn-profile').addEventListener('click', () => {
-    showPage('profile');
-});
-
-
-//listener to btn-profileback event
-document.getElementById('btn-profileback').addEventListener('click', () => {
-    showPage('feed');
-});
-
-//listener to btn-logout event
-document.getElementById('btn-logout').addEventListener('click', () => {
-    const token = localStorage.getItem('lurkforwork_token');
-    if (token) {
-        localStorage.removeItem(`feedJobIds_${token}`);
-    }
-    localStorage.removeItem('lurkforwork_token');
-    document.getElementById("btn-profile").style.display = "none";
-    document.getElementById("btn-search").style.display = "none";
-    showPage('register');
-});
-
-//listener to btn-other-profile-back event
-document.getElementById('btn-other-profile-back').addEventListener('click', () => {
-    showPage('feed');
-});
-
 // Sends a request to update user profile data
 function sendUpdateRequest(updatedData) {
     const modal = bootstrap.Modal.getInstance(document.getElementById('edit-profile-modal'));
@@ -316,7 +255,6 @@ const showPage = (pageName, targetUserId = null) => {
     const pages = document.querySelectorAll('.page');
     // Clean up previous page state
     if (currentCleanup) {
-        console.log(`Cleaning up before switching to ${pageName}`);
         currentCleanup();
     }
     for (const page of pages) {
@@ -913,7 +851,6 @@ const loadUserProfile = (userId, isOwnProfile = false) => {
     });
     const cleanup = () => {
         if (pollingInterval) {
-            console.log('Stopping profile polling'); // 调试日志
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
@@ -1017,8 +954,6 @@ const loadFeed = () => {
                         currentStart += data.length;
                         fetchNextPage();
                     } else {
-                        console.log('Feed polling result:', allJobs);
-    
                         const token = localStorage.getItem('lurkforwork_token');
                         if (!token) {
                             console.error('No token found, skipping feed job tracking');
@@ -1031,14 +966,10 @@ const loadFeed = () => {
                         const lastJobIds = [...new Set(JSON.parse(localStorage.getItem(storageKey)) || [])];
                         const currentJobIds = [...new Set(allJobs.map(job => job.id))];
     
-                        console.log('Last job IDs (deduplicated):', lastJobIds);
-                        console.log('Current job IDs (deduplicated):', currentJobIds);
-    
                         if (!localStorage.getItem(storageKey)) {
                             localStorage.setItem(storageKey, JSON.stringify(currentJobIds));
                         } else {
                             const newJobs = [...new Set(currentJobIds.filter(id => !lastJobIds.includes(id)))];
-                            console.log('New jobs detected (deduplicated):', newJobs);
                             if (newJobs.length > 0) {
                                 showNotification(`New jobs posted!`);
                             }
@@ -1113,7 +1044,6 @@ const loadFeed = () => {
     // stop polling when leaving the feed page
     const cleanup = () => {
         if (pollingInterval) {
-            console.log('Stopping feed polling');
             clearInterval(pollingInterval);
             pollingInterval = null;
         }
@@ -1149,9 +1079,72 @@ const validateDate = (dateStr, modal) => {
         showErrorModal('Start Date cannot be earlier than today.');
         return false;
     }
-
     return { day, month, year };
 };
+
+
+
+//############## EVENT LISTENER ##############
+
+
+
+//listener to btn-login event
+document.getElementById('btn-login').addEventListener('click', () => {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password1').value;
+    // Validate form fields
+    if (!email) {
+        showErrorModal("Email cannot be empty");
+        return;
+    }
+    if (!password) {
+        showErrorModal("Password cannot be empty");
+        return;
+    }
+    // Send auth/login request
+    apiCall(
+        'auth/login',
+        'POST',
+        {
+            email: email,
+            password: password,
+        }
+    ).then((data) => {
+        localStorage.setItem('lurkforwork_token', data.token);
+        myId = data.userId;
+        showPage('feed');
+    }).catch((error) => {
+        showErrorModal(error);
+    });
+});
+
+//listener to btn-profile event
+document.getElementById('btn-profile').addEventListener('click', () => {
+    showPage('profile');
+});
+
+
+//listener to btn-profileback event
+document.getElementById('btn-profileback').addEventListener('click', () => {
+    showPage('feed');
+});
+
+//listener to btn-logout event
+document.getElementById('btn-logout').addEventListener('click', () => {
+    const token = localStorage.getItem('lurkforwork_token');
+    if (token) {
+        localStorage.removeItem(`feedJobIds_${token}`);
+    }
+    localStorage.removeItem('lurkforwork_token');
+    document.getElementById("btn-profile").style.display = "none";
+    document.getElementById("btn-search").style.display = "none";
+    showPage('register');
+});
+
+//listener to btn-other-profile-back event
+document.getElementById('btn-other-profile-back').addEventListener('click', () => {
+    showPage('feed');
+});
 
 // Post Job button event listener
 document.getElementById('post-job-btn').addEventListener('click', () => {
@@ -1233,7 +1226,6 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
         showErrorModal('Please enter a valid email address.');
         return;
     }
-
     apiCall('user/watch', 'PUT', { email, turnon: true })
         .then(() => {
             modal.hide();
@@ -1248,7 +1240,6 @@ document.getElementById('search-watch-btn').addEventListener('click', () => {
 });
 
 
-
 for (const atag of document.querySelectorAll('a')) {
     if (atag.hasAttribute('internal-link')) {
         atag.addEventListener('click', () => {
@@ -1257,6 +1248,8 @@ for (const atag of document.querySelectorAll('a')) {
         });
     }
 }
+
+
 //When Page load
 if (localStorage.getItem('lurkforwork_token')) {
     showPage('feed');
