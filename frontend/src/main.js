@@ -176,52 +176,7 @@ function apiCall(path, method, data) {
     })
 }
 
-// listener to btn-register event
-document.getElementById('btn-register').addEventListener('click', () => {
-    const email = document.getElementById('register-email').value;
-    const name = document.getElementById('register-name').value;
-    const password = document.getElementById('register-password1').value;
-    const passwordConfirm = document.getElementById('register-password2').value;
-    // Validate form fields
-    if (!email) {
-        showErrorModal("Email cannot be empty");
-        return;
-    }
-    if (!name) {
-        showErrorModal("Name cannot be empty");
-        return;
-    }
-    if (!password) {
-        showErrorModal("Password cannot be empty");
-        return;
-    }
-    if (!passwordConfirm) {
-        showErrorModal("Password confirmation cannot be empty");
-        return;
-    }
-    // Check if passwords match
-    if (password !== passwordConfirm) {
-        showErrorModal("Passwords don't match");
-        return;
-    }
-    // Send auth/register request
-    apiCall(
-        'auth/register',
-        'POST',
-        {
-            email: email,
-            password: password,
-            name: name,
-        },
-    ).then((data) => {
-        localStorage.setItem('lurkforwork_token', data.token);
-        myId = data.userId;
-        showPage('feed');
-    })
-    .catch((error) => {
-        showErrorModal(error);
-    });
-});
+
 
 
 // Sends a request to update user profile data
@@ -1085,7 +1040,52 @@ const validateDate = (dateStr, modal) => {
 
 
 //############## EVENT LISTENER ##############
-
+// listener to btn-register event
+document.getElementById('btn-register').addEventListener('click', () => {
+    const email = document.getElementById('register-email').value;
+    const name = document.getElementById('register-name').value;
+    const password = document.getElementById('register-password1').value;
+    const passwordConfirm = document.getElementById('register-password2').value;
+    // Validate form fields
+    if (!email) {
+        showErrorModal("Email cannot be empty");
+        return;
+    }
+    if (!name) {
+        showErrorModal("Name cannot be empty");
+        return;
+    }
+    if (!password) {
+        showErrorModal("Password cannot be empty");
+        return;
+    }
+    if (!passwordConfirm) {
+        showErrorModal("Password confirmation cannot be empty");
+        return;
+    }
+    // Check if passwords match
+    if (password !== passwordConfirm) {
+        showErrorModal("Passwords don't match");
+        return;
+    }
+    // Send auth/register request
+    apiCall(
+        'auth/register',
+        'POST',
+        {
+            email: email,
+            password: password,
+            name: name,
+        },
+    ).then((data) => {
+        localStorage.setItem('lurkforwork_token', data.token);
+        myId = data.userId;
+        showPage('feed');
+    })
+    .catch((error) => {
+        showErrorModal(error);
+    });
+});
 
 
 //listener to btn-login event
