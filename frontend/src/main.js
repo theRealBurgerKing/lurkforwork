@@ -1098,7 +1098,15 @@ document.getElementById('btn-register').addEventListener('click', () => {
     ).then((data) => {
         localStorage.setItem('lurkforwork_token', data.token);
         myId = data.userId;
-        showPage('feed');
+        // Automatically watch self after registration
+        apiCall('user/watch', 'PUT', { id: myId, turnon: true })
+            .then(() => {
+                showPage('feed');
+            })
+            .catch((error) => {
+                showErrorModal(`Failed to watch yourself: ${error}`);
+                showPage('feed'); // Proceed to feed even if watch fails
+            });
     })
     .catch((error) => {
         showErrorModal(error);
