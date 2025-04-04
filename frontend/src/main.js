@@ -1,20 +1,20 @@
 import { BACKEND_PORT } from './config.js';
-// A helper you may want to use when uploading new images to the server.
 import { fileToDataUrl } from './helpers.js';
 
+//global variables
 let saveProfileHandler = null;
 let myId = null;
 let userCache = {};
 let currentCleanup = null;
+
+//############## USEFUL FUNCTION ##############
 // Generate a link element with an avatar and username
 const createUserLinkWithAvatar = (userId, additionalText = '') => {
     const listItem = document.createElement('li');
-    listItem.style.display = 'flex';
-    listItem.style.alignItems = 'center';
-
+    listItem.classList.add('user-link-item');
     return getUserInfo(userId)
         .then(userInfo => {
-            // add avatar
+            // have avatar: add avatar
             if (userInfo.image) {
                 const img = document.createElement('img');
                 img.src = userInfo.image;
@@ -22,13 +22,12 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
                 img.className = 'rounded-circle little-profile-pic';
                 listItem.appendChild(img);
             } else {
-                // no avatar: generate placeholder box
+                // no avatar: generate placeholder avatar
                 const placeholder = document.createElement('div');
                 placeholder.className = 'rounded-circle little-profile-pic placeholder-avatar';
                 placeholder.textContent = userInfo.name.charAt(0).toUpperCase();
                 listItem.appendChild(placeholder);
             }
-
             // add name and hyperlink
             const contentSpan = document.createElement('span');
             const userLink = document.createElement('a');
@@ -40,12 +39,10 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
                 showPage('other-profile', userId);
             });
             contentSpan.appendChild(userLink);
-
             // append additional text behind (for comments)
             if (additionalText) {
                 contentSpan.appendChild(document.createTextNode(`: ${additionalText}`));
             }
-
             listItem.appendChild(contentSpan);
             return listItem;
         })
@@ -56,20 +53,18 @@ const createUserLinkWithAvatar = (userId, additionalText = '') => {
         });
 };
 
-// show Notification(block at bottom-right)
+
+// show Notification (block at bottom-right)
 const showNotification = (message) => {
     const notification = document.createElement('div');
     notification.className = 'notification';
     notification.textContent = message;
-
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close-btn';
     closeBtn.textContent = '×';
     closeBtn.onclick = () => notification.remove();
     notification.appendChild(closeBtn);
-
     document.body.appendChild(notification);
-
     // disappear in 5 sec
     setTimeout(() => {
         if (notification.parentNode) {
@@ -77,6 +72,7 @@ const showNotification = (message) => {
         }
     }, 5000);
 };
+
 
 // create "back to top btn"
 const createBackToTopButton = () => {
@@ -91,10 +87,9 @@ const createBackToTopButton = () => {
     document.body.appendChild(button);
     return button;
 };
-
+// Initialize the "Back to Top" button
 const backToTopButton = createBackToTopButton();
-
-
+// Toggles the visibility of the "Back to Top" button based on scroll position and page
 const toggleBackToTopButton = (pageName) => {
     const scrollTop = window.scrollY || window.pageYOffset;
     if (scrollTop > 200 && (pageName === 'feed' || pageName === 'profile')) {
@@ -103,14 +98,15 @@ const toggleBackToTopButton = (pageName) => {
         backToTopButton.style.display = 'none'; // hide
     }
 };
-
+// Listens for scroll events to toggle the "Back to Top" button visibility
 window.addEventListener('scroll', () => {
     const currentPage = document.querySelector('.page:not(.hide)')?.id.replace('page-', '') || 'register';
     console.log(`Scroll event: currentPage=${currentPage}`);
     toggleBackToTopButton(currentPage);
 });
 
-//Error popup
+
+//Displays an error modal
 const showErrorModal = (message) => {
     const modalElement = document.getElementById('error-modal');
     const modal = new bootstrap.Modal(modalElement);
@@ -120,6 +116,7 @@ const showErrorModal = (message) => {
     const closeButton = modalElement.querySelector('.btn-close');
     if (closeButton) closeButton.focus();
 };
+
 
 //remove mask element
 function removeModalBackdrop() {
@@ -132,12 +129,12 @@ function removeModalBackdrop() {
     document.body.style.paddingRight = '';
 }
 
+// Fetches user information by ID
 const getUserInfo = (userId) => {
     // If userId is in cache, directly return cached data
     if (userCache[userId]) {
         return Promise.resolve(userCache[userId]);
     }
-
     //else return the apiCall to gain data
     return apiCall(`user?userId=${userId}`, 'GET', {})
         .then(userData => {
@@ -155,6 +152,8 @@ const getUserInfo = (userId) => {
             };
         });
 };
+
+
 //send request to backend
 function apiCall(path, method, data) {
     return new Promise((resolve,reject)=>{
@@ -178,14 +177,15 @@ function apiCall(path, method, data) {
     })
 }
 
-//register
+
+//############## EVENT LISTENER ##############
+// listener to btn-register event
 document.getElementById('btn-register').addEventListener('click', () => {
     const email = document.getElementById('register-email').value;
     const name = document.getElementById('register-name').value;
     const password = document.getElementById('register-password1').value;
     const passwordConfirm = document.getElementById('register-password2').value;
-    
-    // Check if any field is empty
+    // Validate form fields
     if (!email) {
         showErrorModal("Email cannot be empty");
         return;
@@ -207,7 +207,7 @@ document.getElementById('btn-register').addEventListener('click', () => {
         showErrorModal("Passwords don't match");
         return;
     }
-
+    // Send auth/register request
     apiCall(
         'auth/register',
         'POST',
@@ -226,11 +226,12 @@ document.getElementById('btn-register').addEventListener('click', () => {
     });
 });
 
-//login
+
+//listener to btn-login event
 document.getElementById('btn-login').addEventListener('click', () => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password1').value;
-    // Check if any field is empty
+    // Validate form fields
     if (!email) {
         showErrorModal("Email cannot be empty");
         return;
@@ -239,6 +240,7 @@ document.getElementById('btn-login').addEventListener('click', () => {
         showErrorModal("Password cannot be empty");
         return;
     }
+    // Send auth/login request
     apiCall(
         'auth/login',
         'POST',
@@ -255,22 +257,22 @@ document.getElementById('btn-login').addEventListener('click', () => {
     });
 });
 
-//profile
+//listener to btn-profile event
 document.getElementById('btn-profile').addEventListener('click', () => {
     showPage('profile');
 });
 
 
-//back to feed
+//listener to btn-profileback event
 document.getElementById('btn-profileback').addEventListener('click', () => {
     showPage('feed');
 });
 
-//btn-logout
+//listener to btn-logout event
 document.getElementById('btn-logout').addEventListener('click', () => {
     const token = localStorage.getItem('lurkforwork_token');
     if (token) {
-        localStorage.removeItem(`feedJobIds_${token}`); // 移除用户特定的 feedJobIds
+        localStorage.removeItem(`feedJobIds_${token}`);
     }
     localStorage.removeItem('lurkforwork_token');
     document.getElementById("btn-profile").style.display = "none";
@@ -365,7 +367,6 @@ const showJobElement = (job, index, jobsArray,targetUserId = null) => {
         const img = document.createElement('img');
         img.src = job.image;
         img.alt = job.title;
-        img.style.maxWidth = '100%';
         jobContainer.appendChild(img);
     }
     // Posted time

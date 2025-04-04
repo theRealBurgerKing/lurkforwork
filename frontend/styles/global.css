@@ -264,6 +264,7 @@ html, body {
     font-size: 50px;
 }
 
+/* page-profile */
 #page-profile,
 #page-other-profile {
     margin-left: 10vw;
@@ -284,9 +285,12 @@ html, body {
     display: flex;
     justify-content: center;
 }
+.user-link-item {
+    display: flex;
+    align-items: center;
+}
 
-
-/* ----------Profile----------- */
+/* ----------Profile content----------- */
 /* profile header in loadProfile */
 #profile-header {
     display: flex;
