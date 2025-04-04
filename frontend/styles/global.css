@@ -400,3 +400,69 @@ html, body {
     margin-left: 10px;
 }
 
+
+
+/* ----------Responsive Design with Media Queries---------- */
+
+/* Tablet and below (max-width: 768px) */
+@media (max-width: 768px) {
+    .job-post {
+        margin-left: 5vw;
+        margin-right: 5vw;
+        padding: 30px;
+        font-size: 20px;
+    }
+
+    #btn-search {
+        right: 100px;
+    }
+
+    .main-profile-pic, .main-profile-pic.placeholder-avatar {
+        width: 150px;
+        height: 150px;
+        margin-left: 3vw;
+        margin-right: 2vw;
+        font-size: 60px;
+    }
+
+    #page-login, #page-register {
+        width: 70vw;
+        margin-left: 15vw;
+        margin-right: 15vw;
+        padding-left: 5vw;
+        padding-right: 5vw;
+        height: auto;
+        min-height: 60vh;
+    }
+
+    #page-feed, #page-profile, #page-other-profile {
+        margin-left: 5vw;
+        margin-right: 5vw;
+    }
+
+    .page-title {
+        font-size: 40px;
+    }
+
+    #profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-left: 2vw;
+    }
+
+    .btn-show-likes {
+        margin-left: 20px;
+        width: 120px;
+    }
+
+    .btn-like-job {
+        width: 80px;
+    }
+
+    .back-to-top {
+        width: 40px;
+        height: 40px;
+        bottom: 60px;
+        right: 15px;
+    }
+}
