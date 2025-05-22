@@ -29,6 +29,8 @@ LurkForWork 是一个受 LinkedIn 启发的综合性专业社交网络平台，�
 - 全面的错误处理，提供用户友好的弹窗消息
 - Automatic session management and logout functionality
 - 自动会话管理和登出功能
+![image](https://github.com/user-attachments/assets/236633fa-a63a-4719-92d8-e014c62d7a44)
+![image](https://github.com/user-attachments/assets/6ab3d694-be3f-4f28-818c-4d1b0d0ae14d)
 
 **Profile Management / 个人资料管理**
 - Complete user profile creation and editing
@@ -39,6 +41,8 @@ LurkForWork 是一个受 LinkedIn 启发的综合性专业社交网络平台，�
 - 个人信息更新（邮箱、密码、姓名）
 - Profile visibility and professional presentation
 - 个人资料可见性和专业展示
+![image](https://github.com/user-attachments/assets/7de90af7-c37c-496f-b898-0680d04b80d9)
+![image](https://github.com/user-attachments/assets/47c3a5c5-de52-495d-9130-74169bd0068d)
 
 ### 2. Professional Job Feed System / 专业职位信息流系统
 
@@ -55,6 +59,8 @@ LurkForWork 是一个受 LinkedIn 启发的综合性专业社交网络平台，�
   - 职位开始日期和持续时间信息
   - Author information and posting timestamps
   - 作者信息和发布时间戳
+![image](https://github.com/user-attachments/assets/8c458fd1-40c4-4538-bd91-796cc385620f)
+![image](https://github.com/user-attachments/assets/bec34efb-01a6-4da0-8855-e81c2b1aed56)
 
 **Smart Time Display / 智能时间显示**
 - Recent posts show "X hours/minutes ago" (within 24 hours)
