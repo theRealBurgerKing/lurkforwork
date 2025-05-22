@@ -1,195 +1,231 @@
-## 0. Change Log
-29/3: Update on the 2.2.1 - Author details
+# LurkForWork - Professional Social Network Platform
+*A LinkedIn-inspired Professional Networking Platform - 基于 LinkedIn 的专业社交网络平台*
 
-# Assessment 3 - Vanilla JS: LurkForWork
+## Project Overview / 项目概述
 
-[Please see course website for full spec](https://cgi.cse.unsw.edu.au/~cs6080/NOW/assessments/assignments/ass3)
+LurkForWork is a comprehensive professional social networking platform inspired by LinkedIn, designed to connect professionals and facilitate job opportunities. Built with vanilla JavaScript, this platform offers a complete social networking experience with job posting, user interaction, and professional networking capabilities.
 
-This assignment is due Friday the 4th of April, 8pm.
+LurkForWork 是一个受 LinkedIn 启发的综合性专业社交网络平台，旨在连接专业人士并促进就业机会。该平台使用原生 JavaScript 构建，提供完整的社交网络体验，包括职位发布、用户互动和专业网络功能。
 
-**Please run `./util/setup.sh` in your terminal before you begin. This will set up some checks in relation to the "Git Commit Requirements".**
+## Technology Stack / 技术栈
 
-## 2. The Task (Frontend)
+- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
+- **Backend**: Node.js Express Server (provided)
+- **Authentication**: JWT-based user authentication
+- **Data Storage**: RESTful API integration
+- **File Handling**: Base64 image encoding and file uploads
+- **Real-time Features**: Polling-based live updates and notifications
 
-Your task is to build a frontend for a UNSW rip-off version of the popular professional social networking tool [LinkedIn](https://linkedin.com/). If you haven't used this application before, we would recommend creating your own LinkedIn profile - it's probably good for your career anyway!
+## Core Features / 核心功能
 
-UNSW's rip-off of LinkedIn is called "LurkForWork". However, you don't have to build the entire application. You only have to build the frontend. The backend is already built for you as an express server built in NodeJS (see section 3.2).
+### 1. User Authentication & Management / 用户认证与管理
 
-Instead of providing visuals of what the frontend (your task) should look like, we instead are providing you with a number of clear and short requirements about expected features and behaviours.
+**Secure Registration & Login System / 安全注册与登录系统**
+- Email-based user registration with password confirmation
+- 基于邮箱的用户注册，包含密码确认功能
+- Secure login functionality with JWT token management
+- 安全登录功能，采用 JWT 令牌管理
+- Comprehensive error handling with user-friendly popup messages
+- 全面的错误处理，提供用户友好的弹窗消息
+- Automatic session management and logout functionality
+- 自动会话管理和登出功能
 
-The requirements describe a series of **screens**. Screens can be popups/modals, or entire pages. The use of that language is so that you can choose how you want it to be displayed. A screen is essentially a certain state of your web-based application.
+**Profile Management / 个人资料管理**
+- Complete user profile creation and editing
+- 完整的用户资料创建和编辑功能
+- Professional image upload and management
+- 专业头像上传和管理
+- Personal information updates (email, password, name)
+- 个人信息更新（邮箱、密码、姓名）
+- Profile visibility and professional presentation
+- 个人资料可见性和专业展示
 
-### 2.1. Milestone 1 - Registration & Login (10%)
+### 2. Professional Job Feed System / 专业职位信息流系统
 
-This focuses on the basic user interface to register and log in to the site.
+**Dynamic Job Feed / 动态职位信息流**
+- Chronologically ordered job postings (most recent first)
+- 按时间顺序排列的职位发布（最新优先）
+- Rich job content display including:
+- 丰富的职位内容展示，包括：
+  - Professional job images (base64 format)
+  - 专业职位图片（base64 格式）
+  - Comprehensive job descriptions and requirements
+  - 全面的职位描述和要求
+  - Job start dates and duration information
+  - 职位开始日期和持续时间信息
+  - Author information and posting timestamps
+  - 作者信息和发布时间戳
 
-#### 2.1.1. Login
- * When the user isn't logged in, the site shall present a login form that contains:
-   * an email field (text)
-   * a password field (password)
-   * submit button to login
- * When the submit button is pressed, the form data should be sent to `POST /auth/login` to verify the credentials. If there is an error during login an appropriate error should appear on the screen.
+**Smart Time Display / 智能时间显示**
+- Recent posts show "X hours/minutes ago" (within 24 hours)
+- 最近发布显示"X 小时/分钟前"（24 小时内）
+- Older posts display formatted date (DD/MM/YYYY)
+- 较早发布显示格式化日期（日/月/年）
 
-#### 2.1.2. Registration
- * When the user isn't logged in, the login form shall provide a link/button that opens the register form. The register form will contain:
-   * an email field (text)
-   * a name field (text)
-   * a password field (password)
-   * a confirm password field (password) - not passed to the backend, but an error should be shown on submit if it doesn't match the other password
-   * submit button to register
- * When the submit button is pressed, if the two passwords don't match the user should receive an error popup. If they do match, the form data should be sent to `POST /auth/register` to verify the credentials. If there is an error during registration an appropriate error should appear on the screen.
+### 3. Social Interaction Features / 社交互动功能
 
-#### 2.1.3. Error Popup
- * Whenever the frontend or backend produces an error, there shall be an error popup on the screen with a message (either a message derived from the backend error response, or one meaningfully created on the frontend).
- * This popup can be closed/removed/deleted by pressing an "x" or "close" button.
+**Like & Comment System / 点赞与评论系统**
+- One-click job liking with real-time updates
+- 一键职位点赞，实时更新
+- Comprehensive commenting system with author attribution
+- 全面的评论系统，包含作者归属
+- Like and comment count display
+- 点赞和评论数量显示
+- Interactive user engagement tracking
+- 交互式用户参与度跟踪
 
-#### 2.1.4. Home Page
-* Once a user has registered or logged in, they should arrive on the home page.
-* For now, the home page will be a blank screen that contains only a "logout" button visible at all times.
-* When this logout button is pressed, it removes the token from the state of the website (e.g. local storage) and then sends the user back to the login screen.
+### 4. Professional Networking / 专业网络建设
 
-### 2.2. Milestone 2 - Basic Feed (15%)
+**User Profile System / 用户资料系统**
+- Comprehensive user profiles with professional information
+- 包含专业信息的全面用户资料
+- Individual user job history and portfolio display
+- 个人用户工作历史和作品展示
+- Professional connection tracking and statistics
+- 专业联系跟踪和统计
 
-Milestone 2 focuses on fetching feed data from the API. A feed and it's associated content should only be accessible to logged in users.
+**Watch/Follow Functionality / 关注功能**
+- Professional connection management (watch/unwatch users)
+- 专业联系管理（关注/取消关注用户）
+- Follower and following count display
+- 粉丝和关注数量显示
+- Email-based user discovery and connection
+- 基于邮箱的用户发现和连接
 
-#### 2.2.1. Basic Feed (Feed screen)
+### 5. Content Creation & Management / 内容创建与管理
 
-The application should present a "feed" of user content on the home page derived `GET /job/feed`. Note that the feed will only return information from people that the logged in user is watching.
+**Job Posting System / 职位发布系统**
+- Comprehensive job creation interface with:
+- 全面的职位创建界面，包含：
+  - Professional job titles and descriptions
+  - 专业职位标题和描述
+  - Start date specification (DD/MM/YYYY format)
+  - 开始日期指定（日/月/年格式）
+  - Job-related image uploads
+  - 职位相关图片上传
+  - Detailed requirement specifications
+  - 详细要求规格
 
-The jobs should be displayed in reverse chronological order (most recent jobs first). 
+**Content Management / 内容管理**
+- Edit and update existing job posts
+- 编辑和更新现有职位发布
+- Delete job posts with proper authorization
+- 删除职位发布，具备适当的授权机制
+- Author-only content modification controls
+- 仅作者可修改内容的控制
 
-Each job should display:
-1. Name of the author who made the job post
-2. When it was posted
-  * If the job was posted today (in the last 24 hours), it should display how many hours and minutes ago it was posted
-  * If the job was posted more than 24 hours ago, it should just display the date DD/MM/YYYY that it was posted
-3. The job content itself. The job content includes the following:
-  * An image to describe the job (jpg in base64 format) - can be any aspect ratio
-  * A title for the new job
-  * A starting date for the job (in the format DD/MM/YYYY) - it can't be earlier than today
-  * How many likes it has (or none)
-  * The job description text
-  * How many comments the job post has
+## Advanced Features / 高级功能
 
-### 2.3. Milestone 3 - Advanced Feed (10%)
- 
-Milestone 3 focuses on a richer UX and will require some backend interaction.
+### 6. Enhanced User Experience / 增强用户体验
 
-#### 2.3.1. Show likes on a job
-* Allow a user to see a list of all users who have liked a job. In terms of how it is displayed, consider your preferred user experience approach out of the following 3 options:
-  * The list of names is visible on each job in the feed by default
-  * The list of names is visible on a job in the feed if a show/hide toggle is clicked (hidden by default).
-  * The list of names is visible in a popup, modal, or new screen, when a button/link is clicked on the feed.
+**Infinite Scroll Technology / 无限滚动技术**
+- Progressive content loading without pagination
+- 无分页的渐进式内容加载
+- Smooth scrolling experience with optimized performance
+- 流畅滚动体验，性能优化
+- Efficient data fetching and memory management
+- 高效的数据获取和内存管理
 
-#### 2.3.2. Show comments on a job
-* Allow a user to see a list of all the comments on the job. Each comment should contain at minimum the user's name and their comment. In terms of how it is displayed, consider your preferred user experience approach out of the following 3 options:
-  * The list of names and comments are visible on each job in the feed by default
-  * The list of names and comments are visible on a job in the feed if a show/hide toggle is clicked (hidden by default).
-  * The list of names and comments are visible in a popup, modal, or new screen, when a button/link is clicked on the feed.
+**Live Update System / 实时更新系统**
+- Real-time like and comment updates without page refresh
+- 无需刷新页面的实时点赞和评论更新
+- Polling-based live data synchronization
+- 基于轮询的实时数据同步
+- Immediate user interaction feedback
+- 即时用户交互反馈
 
-#### 2.3.3. Liking a job
-* A user can like a job on their feed and trigger a api request (`PUT /job/like`)
-* For this milestone, it's OK if the like doesn't appear/update until the page is refreshed.
+### 7. Push Notification System / 推送通知系统
 
-#### 2.3.4. Feed Pagination
-* Users can page between sets of results in the feed using the position token with (`GET /job/feed`).
-* Note: You will automatically receive marks for this section if you end up implementing the infinite scroll alternative in a later milestone.
+**Professional Activity Notifications / 专业活动通知**
+- Real-time notifications when followed users post jobs
+- 关注用户发布职位时的实时通知
+- Custom browser notifications or in-app popups
+- 自定义浏览器通知或应用内弹窗
+- Intelligent notification management and filtering
+- 智能通知管理和过滤
 
-### 2.4. Milestone 4 - Other users & profiles (15%)
+## Technical Architecture / 技术架构
 
-Milestone 4 focuses predominately on user profiles and how users interact with them.
+### Frontend Architecture / 前端架构
+- **Modular Design**: Component-based vanilla JavaScript architecture
+- **模块化设计**：基于组件的原生 JavaScript 架构
+- **State Management**: Efficient DOM manipulation and state tracking
+- **状态管理**：高效的 DOM 操作和状态跟踪
+- **API Integration**: RESTful API communication with proper error handling
+- **API 集成**：RESTful API 通信，具备完善的错误处理
 
-#### 2.4.1. Viewing others' profiles
-* Let a user click on a user's name from a job, like, or comment, and be taken to a profile screen for that user.
-* The profile screen should contain all information the backend provides for that particular user ID via (`GET /user`) (excludes the user ID).
-* The profile should also display all jobs made by that person. The jobs shown should also show likes, comments, and be able to have likes/comments interacted with just like the feed screen.
-* The profile should also display somewhere all other users this profile is watched by (information via `GET /user`). This should consist of a list of names (which for each name links to another profile), as well as a count somewhere on the page that shows the total number of users they are watched by.
+### Data Flow / 数据流
+- **Authentication Flow**: JWT token-based session management
+- **认证流程**：基于 JWT 令牌的会话管理
+- **Content Rendering**: Dynamic content generation and updates
+- **内容渲染**：动态内容生成和更新
+- **User Interactions**: Event-driven interaction handling
+- **用户交互**：事件驱动的交互处理
 
-#### 2.4.2. Viewing your own profile
-* Users can view their own profile as if they would any other user's profile
-* A link to the users profile (via text or small icon) should be visible somewhere common on most screens (at the very least on the feed screen) when logged in.
+## User Journey Examples / 用户旅程示例
 
-#### 2.4.3. Updating your profile
-* Users can update their own personal profile via (`PUT /user`). This allows them to update their:
-  * Email address
-  * Password
-  * Name
-  * Image (uploading a file from your system)
+### Professional User Workflow / 专业用户工作流
+1. **Account Creation** → **账户创建**
+   - Register with professional email and credentials
+   - 使用专业邮箱和凭证注册
 
-#### 2.4.4. Watching / Unwatching
-* Watching on user profiles:
-  * When a logged in user is visiting another user's profile page, a button should exist that allows them to "watch" the other user (via `PUT /user/watch`).
-  * If the logged in user already watches this person, an unwatch button should exist.
-* Somewhere on the feed screen a button should also exist that prompts the user to enter an email address in a popup. When entered, the email address is sent to `PUT /user/watch` to watch that particular user.
+2. **Profile Setup** → **个人资料设置**
+   - Upload professional photo and complete profile
+   - 上传专业照片并完善个人资料
 
-### 2.5. Milestone 5 - Adding & updating content (10%)
+3. **Network Building** → **网络建设**
+   - Discover and follow industry professionals
+   - 发现并关注行业专业人士
 
-Milestone 5 focuses on interacting with content and comments.
+4. **Content Engagement** → **内容参与**
+   - Browse job feed, like and comment on opportunities
+   - 浏览职位信息流，点赞和评论机会
 
-#### 2.5.1. Adding a job
-* Users can upload a new job content from a modal, component, or seperate screen via (`POST /job`)
-* Users can open this component, modal, or separate screen in a single or multiple places (at the very least on the feed screen), and should be easily and clearly accessible. User can add a job by providing:
-  * A title for the new job
-  * A starting date for the job (in the format DD/MM/YYYY)
-  * The job description text
-  * An image to describe the job
+5. **Job Posting** → **职位发布**
+   - Create and publish job opportunities
+   - 创建并发布职位机会
 
-#### 2.5.2. Updating & deleting a job
-* Users can update a job they made via (`PUT /job`)
-  * Every single feed should have a update button that allows them to update the job (e.g. by new page or modal)
-  * Any details of a job can be modified
-  * This screen should also contain some form of save button
-  * Update button will only visible to the job creator
-* Users can delete a job they made via (`DELETE /job`)
-  * Every single feed should have a delete button that allows them to delete the job 
-  * Delete button will only visible to the job creator
+6. **Professional Networking** → **专业网络建设**
+   - View profiles, connect with professionals
+   - 查看资料，与专业人士建立联系
 
-#### 2.5.3. Leaving comments
-* Users can write comments on "jobs" via (`POST /job/comment`)
-* Every single feed should have a button to make comment
-  * When this comment button is pressed, a modal should appear that contains an input/textarea box and a "comment" button.
-  * When the comment button is pressed, the text inside the text comment should be posted as a new comment for the thread at `POST /job/comment` and the modal should disappear.
+### Job Seeker Workflow / 求职者工作流
+1. **Platform Access** → **平台访问**
+2. **Job Discovery** → **职位发现**
+3. **Application Engagement** → **申请参与**
+4. **Professional Connection** → **专业联系**
+5. **Career Development** → **职业发展**
 
-### 2.6. Milestone 6 - Challenge Components (`advanced`) (5%)
+## Project Goals / 项目目标
 
-#### 2.6.1. Infinite Scroll 
-* Instead of pagination, users an infinitely scroll through results on the feed. For infinite scroll to be properly implemented you need to progressively load jobs as you scroll. 
+LurkForWork demonstrates advanced vanilla JavaScript development capabilities while creating a comprehensive professional networking platform. The project showcases:
 
-#### 2.6.2. Live Update
-* If a user likes a job or comments on a job, the job's likes and comments should update without requiring a page reload/refresh. This should be done with some kind of polling.
+LurkForWork 展示了高级原生 JavaScript 开发能力，同时创建了一个全面的专业网络平台。该项目展示了：
 
-*Polling is very inefficient for browsers, but can often be used as it simplifies the technical needs on the server.*
+**Technical Excellence / 技术卓越**
+- Modern JavaScript ES6+ features and best practices
+- 现代 JavaScript ES6+ 特性和最佳实践
+- Efficient DOM manipulation and state management
+- 高效的 DOM 操作和状态管理  
+- RESTful API integration and error handling
+- RESTful API 集成和错误处理
 
-#### 2.6.3. Push Notifications
-* Users can receive push notifications when a user they watch posts a job. To know whether someone or not has posted a job, you must "poll" the server (i.e. intermittent requests, maybe every second, that check the state). You can implement this either via browser's built in notification APIs or through your own custom built notifications/popups. The notifications are not required to exist outside of the webpage.
+**User Experience Focus / 用户体验关注**
+- Intuitive professional networking interface
+- 直观的专业网络界面
+- Real-time interactions and updates
+- 实时交互和更新
+- Mobile-responsive design principles
+- 移动响应式设计原则
 
-_No course assistance in lectures will be provided for this component, you should do your own research as to how to implement this. There are extensive resources online._
+**Professional Application / 专业应用**
+- Industry-standard authentication and security
+- 行业标准的认证和安全性
+- Scalable architecture for professional use
+- 专业使用的可扩展架构
+- Comprehensive feature set for networking professionals
+- 为网络专业人士提供的全面功能集
 
-### 2.7. Milestone 7 - Very Challenge Components (`advanced *= 2`) (5%)
+This platform serves as both a demonstration of advanced web development skills and a functional professional networking tool suitable for career development, job discovery, and professional relationship building.
 
-#### 2.7.1. Static feed offline access
-* Users can access the most recent feed they've loaded even without an internet connection.
-* Cache information from the latest feed in local storage in case of outages.
-* When the user tries to interact with the website at all in offline mode (e.g. comment, like) they should receive errors
-
-_No course assistance will be provided for this component, you should do your own research as to how to implement this._
-
-#### 2.7.2 Fragment based URL routing
-Users can access different pages using URL fragments:
-```
-* `/#feed` to access the feed screen
-* `/#profile` to view the authorised user's own profile
-* `/#profile={userId}` to view the profile of the user with the particular `userId`
-```
-
-_No course assistance in lectures or on the forum will be provided for this component, you should do your own research as to how to implement this._
-
-### 2.8. Bonus Marks (5%)
-
-An extra 5% of the assignment can be attained via bonus marks, meaning a maximum mark of 105/100. Any bonus marks that extend your ass2 mark above 100% will bleed into other assignment marks, but cannot contribute outside of the 75% of the course that is allocated for assignment marks
-
-Your bonus feature(s) can be anything. You just have to think of something that could make your web app stand out in some minor or major way. Simple examples would include just making sure that your user interface and user experience stands out amongst other students, maybe through some user testing.
-
-You could also add extra features, such as some additional frontend form validations - the possibilities are limitless.
-
-If you do implement a bonus feature, describe the feature and its details in `bonus.md` in the root directory of this repository.
+该平台既是高级 Web 开发技能的展示，也是适用于职业发展、职位发现和专业关系建设的功能性专业网络工具。
