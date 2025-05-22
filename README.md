@@ -267,4 +267,7 @@ Step 1: Install global HTTP server (one-time setup) / 安装全局 HTTP 服务�
 npm install --global http-server
 
 Step 2: Start development server / 启动开发服务器
+
+run this in main directory!!
+
 npx http-server frontend -c 1 -p [port]
