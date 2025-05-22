@@ -227,5 +227,44 @@ LurkForWork 展示了高级原生 JavaScript 开发能力，同时创建了一�
 - 为网络专业人士提供的全面功能集
 
 This platform serves as both a demonstration of advanced web development skills and a functional professional networking tool suitable for career development, job discovery, and professional relationship building.
-
 该平台既是高级 Web 开发技能的展示，也是适用于职业发展、职位发现和专业关系建设的功能性专业网络工具。
+
+## Deployment / 部署
+### Backend Setup Instructions / 后端部署
+
+Step 1: Create Backend Directory / 创建后端仓库
+
+Create a new backend folder in your current directory
+
+mkdir backend
+
+Navigate into the backend folder
+
+cd backend
+
+Step 2: Clone the Backend Repository / 克隆后端仓库
+
+Clone the backend repository into the current directory
+
+git clone git@nw-syd-gitlab.cseunsw.tech:COMP6080/25T1/ass3-backend.git
+
+Step 3: Install Dependencies / 安装依赖
+
+Install all required Node.js packages
+
+npm install
+
+Step 4: Start the Backend Server / 启动后端服务器
+
+Start the Express server
+
+npm start
+
+### Frontend Setup Instructions / 前端部署
+
+Step 1: Install global HTTP server (one-time setup) / 安装全局 HTTP 服务器（一次性设置）
+
+npm install --global http-server
+
+Step 2: Start development server / 启动开发服务器
+npx http-server frontend -c 1 -p [port]
